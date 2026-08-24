@@ -1,0 +1,110 @@
+name: fintech-platform-slice
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fintech
+      POSTGRES_PASSWORD: fintech
+      POSTGRES_DB: fintech
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fintech"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  customer-service:
+    build:
+      context: ../../services/customer/customer-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/customer_db
+      DB_USERNAME: fintech
+      DB_PASSWORD: fintech
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ledger-service:
+    build:
+      context: ../../ledger/general-ledger-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/ledger_db
+      DB_USERNAME: fintech
+      DB_PASSWORD: fintech
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  accounts-service:
+    build:
+      context: ../../services/accounts/account-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/accounts_db
+      DB_USERNAME: fintech
+      DB_PASSWORD: fintech
+      CUSTOMER_SERVICE_URL: http://customer-service:8081
+      LEDGER_SERVICE_URL: http://ledger-service:8083
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      customer-service:
+        condition: service_started
+      ledger-service:
+        condition: service_started
+
+  transfers-service:
+    build:
+      context: ../../services/transfers/internal-transfer-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/transfers_db
+      DB_USERNAME: fintech
+      DB_PASSWORD: fintech
+      ACCOUNTS_SERVICE_URL: http://accounts-service:8082
+      LEDGER_SERVICE_URL: http://ledger-service:8083
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      accounts-service:
+        condition: service_started
+      ledger-service:
+        condition: service_started
+
+  api-gateway:
+    build:
+      context: ../../gateways/api-gateway
+    environment:
+      CUSTOMER_SERVICE_URL: http://customer-service:8081
+      ACCOUNTS_SERVICE_URL: http://accounts-service:8082
+      LEDGER_SERVICE_URL: http://ledger-service:8083
+      TRANSFERS_SERVICE_URL: http://transfers-service:8084
+    ports:
+      - "8080:8080"
+    depends_on:
+      - customer-service
+      - accounts-service
+      - ledger-service
+      - transfers-service
+
+  web-banking:
+    build:
+      context: ../../apps/web-banking
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
+
+volumes:
+  postgres-data:

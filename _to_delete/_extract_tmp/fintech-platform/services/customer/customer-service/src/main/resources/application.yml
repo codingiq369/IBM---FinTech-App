@@ -1,0 +1,23 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: customer-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/customer_db}
+    username: ${DB_USERNAME:fintech}
+    password: ${DB_PASSWORD:fintech}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
