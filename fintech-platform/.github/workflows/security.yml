@@ -1,0 +1,12 @@
+name: Security
+
+on:
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  scan:
+    uses: ./.github/workflows/security-scan.yml
+    with:
+      image_tag: dev-latest

@@ -1,0 +1,19 @@
+# Overrides on top of defaults.yaml for uat.
+# Matches SPRING_PROFILES_ACTIVE=uat and apps/web-banking/.env.uat.
+# Deliberately close to production.yaml -- UAT sign-off should be testing
+# against something that behaves like production, not a relaxed staging-like
+# setup.
+
+logging:
+  level: WARN
+
+observability:
+  tracing_sample_rate: 0.3
+
+http:
+  cors_allowed_origins: ["https://uat.banking.fintech.example.com"]
+
+database:
+  connection_pool:
+    max_size: 10
+    min_idle: 2

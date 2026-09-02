@@ -1,0 +1,32 @@
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [dev, staging, uat, production]
+        required: true
+      deployment:
+        type: choice
+        options: [customer-service, accounts-service, ledger-service, transfers-service, api-gateway, web-banking]
+        required: true
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name fintech-${{ github.event.inputs.environment }} --region us-east-1
+
+      - name: Roll back
+        run: kubectl rollout undo deployment/${{ github.event.inputs.deployment }} -n fintech-${{ github.event.inputs.environment }}
+
+      - name: Wait for rollout
+        run: kubectl rollout status deployment/${{ github.event.inputs.deployment }} -n fintech-${{ github.event.inputs.environment }} --timeout=180s

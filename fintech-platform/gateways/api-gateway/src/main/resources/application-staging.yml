@@ -1,0 +1,26 @@
+# Environment profile: staging
+# Activated via SPRING_PROFILES_ACTIVE=staging (see environments/staging/.env).
+
+logging:
+  level:
+    root: INFO
+    com.fintechplatform: INFO
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowedOriginPatterns: "${ALLOWED_ORIGIN:https://staging.banking.fintech.example.com}"

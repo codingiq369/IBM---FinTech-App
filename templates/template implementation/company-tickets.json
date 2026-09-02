@@ -1,0 +1,455 @@
+{
+  "company": {
+    "name": "FinTech Platform",
+    "slug": "fintech-platform",
+    "catalogType": "workspace",
+    "businessDomain": "BANKING_FINTECH",
+    "category": ["JAVA", "REACT"],
+    "tagline": "Digital banking core: onboarding, accounts, and a double-entry ledger across five microservices.",
+    "description": "A reference digital-banking platform. Most of the repository is scaffolding for a full bank (cards, lending, trading, fraud, ML, data platform, infra) but one path is fully built and runnable: a customer is onboarded, opens an account, and transfers money to another account, with every balance backed by a real double-entry general ledger. Five services back this flow — customer-service, account-service, general-ledger-service, internal-transfer-service, and an api-gateway — plus a Vite + React + TypeScript demo UI (web-banking). Candidates work inside this vertical slice: fixing bugs in the existing flow, hardening it, and extending the scaffold outward (cards, lending, events, auth) the same way a real platform team would.",
+    "domainDetails": "The general ledger enforces double-entry bookkeeping in the domain model itself — a JournalEntry cannot be constructed unless its debits equal its credits, so an unbalanced entry is structurally impossible, not just validated away. Each service owns exactly one Postgres database (customer_db, accounts_db, ledger_db, transfers_db); no service reads another's tables directly, only its HTTP API through a *Client wrapper. KYC is simplified to an age check (18+) standing in for real document verification and sanctions screening. There is currently no authentication on any endpoint.",
+    "stackHighlights": ["Java 17 + Spring Boot", "React 18 + TypeScript + Vite", "PostgreSQL (database-per-service)", "Docker Compose"],
+    "techStack": {
+      "frontend": "React 18 + TypeScript + Vite",
+      "backend": "Java 17 / Spring Boot 3, standalone Maven modules per service",
+      "database": "PostgreSQL, one instance/database per service (customer_db, accounts_db, ledger_db, transfers_db)",
+      "cicd": "GitHub Actions (scaffolded)",
+      "containerization": "Docker Compose",
+      "testing": "JUnit 5 + Mockito (backend), Vitest + React Testing Library (frontend)",
+      "language": "Java (backend services), TypeScript (frontend)"
+    },
+    "cultureProfile": {
+      "reviewStrictness": 4,
+      "communicationStyle": "async"
+    },
+    "baseRepoUrl": "https://github.com/office-iq-workspaces/fintech-platform",
+    "suggestedBranch": "main",
+    "branding": {
+      "primaryColor": "#0f62fe",
+      "displayName": "FinTech Platform"
+    }
+  },
+
+  "tickets": [
+    {
+      "day": 1,
+      "ticketId": "FTP-D1-01",
+      "title": "Get the onboarding → account → transfer slice running locally",
+      "description": "Run the full stack with `cd deployment/docker && docker compose up --build` and walk the vertical slice end to end in the browser UI at localhost:3000: create a customer, open an account, make a transfer, and confirm the balance updates. First boot takes a minute or two while all five JVMs migrate their databases — note where in the flow anything breaks, since the backend services were reviewed by hand but never compiled before handoff.",
+      "type": "onboarding",
+      "priority": "low",
+      "estimatedHours": 3,
+      "acceptanceCriteria": [
+        "Stack starts cleanly via docker compose and localhost:3000 loads the demo UI",
+        "A customer can be onboarded, an account opened, and a transfer completed end to end",
+        "Any compile or runtime error encountered is written up as a short note with the failing service and stack trace"
+      ]
+    },
+    {
+      "day": 2,
+      "ticketId": "FTP-D2-01",
+      "title": "Fix mvn clean verify failures in the backend services",
+      "description": "The Java services were written without access to Maven Central and were never compiled. Run `mvn clean verify` in each of services/customer/customer-service, services/accounts/account-service, ledger/general-ledger-service, services/transfers/internal-transfer-service, and gateways/api-gateway, and fix any compile errors, missing imports, or dependency version mismatches you hit — treat each as a real bug, not a tooling problem.",
+      "type": "bug",
+      "priority": "high",
+      "estimatedHours": 5,
+      "acceptanceCriteria": [
+        "All five backend Maven modules build clean with `mvn clean verify`",
+        "No test was skipped or disabled to make the build pass",
+        "Root cause of each compile error is noted in the PR description"
+      ]
+    },
+    {
+      "day": 3,
+      "ticketId": "FTP-D3-01",
+      "title": "Reject account opening for a KYC-unapproved customer",
+      "description": "account-service currently opens an account for any customerId without checking the customer's KYC status returned by customer-service. Add a check in the account-opening path that rejects the request with a 422 when the customer's KYC status is not approved, and add a test that a NOT_APPROVED customer cannot open an account.",
+      "type": "bug",
+      "priority": "high",
+      "estimatedHours": 4,
+      "acceptanceCriteria": [
+        "Opening an account for a customer whose KYC status is not approved returns 422 with a clear error message",
+        "Opening an account for an approved customer still succeeds",
+        "New unit/integration test covers both cases"
+      ]
+    },
+    {
+      "day": 4,
+      "ticketId": "FTP-D4-01",
+      "title": "Add a balance-as-of endpoint to general-ledger-service",
+      "description": "Add `GET /api/ledger/accounts/{ledgerAccountId}/balance?asOf=<ISO-8601 timestamp>` to general-ledger-service, computing the balance from posted journal entries up to (and including) the given timestamp instead of only exposing the current balance. This is needed for the account statement work later in the sprint.",
+      "type": "feature",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "acceptanceCriteria": [
+        "Endpoint returns the correct balance for a timestamp in the middle of a sequence of postings",
+        "Omitting `asOf` still returns the current balance (unchanged behavior)",
+        "Invalid or future timestamps return a 400"
+      ]
+    },
+    {
+      "day": 5,
+      "ticketId": "FTP-D5-01",
+      "title": "Fix same-currency validation bypass in internal-transfer-service",
+      "description": "internal-transfer-service is supposed to reject a transfer between accounts held in different currencies, but the check compares account.currency case-sensitively and against the wrong field on one of the two AccountResponse objects, letting mismatched-currency transfers slip through as PENDING before failing later at the ledger. Fix the validation so it rejects the request up front with a clear FAILED reason.",
+      "type": "bug",
+      "priority": "high",
+      "estimatedHours": 3,
+      "acceptanceCriteria": [
+        "A transfer between accounts in different currencies is rejected before any ledger call is made",
+        "The Transfer record is saved as FAILED with a currency-mismatch reason, not left PENDING",
+        "Existing same-currency transfers are unaffected"
+      ]
+    },
+    {
+      "day": 6,
+      "ticketId": "FTP-D6-01",
+      "title": "Add a request-id header at api-gateway",
+      "description": "gateways/api-gateway has no authentication yet (tracked separately) but currently also has no way to correlate one browser action across the four downstream services' logs. Add a filter that generates an X-Request-Id (or passes one through if the client already sent one) and forwards it on every proxied call, and have each downstream service log it on every request.",
+      "type": "security",
+      "priority": "medium",
+      "estimatedHours": 4,
+      "acceptanceCriteria": [
+        "Every request through the gateway carries an X-Request-Id header to all four backend services",
+        "A client-supplied X-Request-Id is preserved rather than overwritten",
+        "Each service's request logs include the request id"
+      ]
+    },
+    {
+      "day": 7,
+      "ticketId": "FTP-D7-01",
+      "title": "Speed up balance computation in general-ledger-service",
+      "description": "Balance lookups currently replay every JournalEntry for an account from the beginning of time on every request, which is already visibly slow in local testing with a few thousand seeded postings. Add the appropriate index on the postings table and/or a running-balance snapshot strategy so a balance lookup stays fast as history grows, without weakening the double-entry invariant.",
+      "type": "performance",
+      "priority": "medium",
+      "estimatedHours": 5,
+      "acceptanceCriteria": [
+        "Balance lookup for an account with 10k+ postings returns in well under the current baseline (document before/after timing)",
+        "Balance values are unchanged for existing test accounts",
+        "JournalEntryTest and other ledger tests still pass"
+      ]
+    },
+    {
+      "day": 8,
+      "ticketId": "FTP-D8-01",
+      "title": "Build the transactions page in web-banking",
+      "description": "src/pages/transactions currently just hosts a placeholder; build it out to list a selected account's transfer history (both sent and received) using the existing src/api transfer client, following the same page/service/store split used by src/pages/payments. Reuse the StatusPill component for transfer status.",
+      "type": "feature",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "acceptanceCriteria": [
+        "Transactions page lists an account's transfers with amount, counterparty, timestamp, and status",
+        "Uses StatusPill and the existing DirectoryContext for the active customer/account, not new ad-hoc state",
+        "New Vitest coverage for the page's data-fetching logic"
+      ]
+    },
+    {
+      "day": 9,
+      "ticketId": "FTP-D9-01",
+      "title": "Add an outbox table to internal-transfer-service",
+      "description": "If internal-transfer-service crashes between posting to general-ledger-service and saving the Transfer as COMPLETED, the ledger ends up with a journal entry that has no matching completed transfer record. Add a transactional outbox table recording the intended status transition alongside the ledger call, and a small reconciliation job on startup that resolves any transfer left PENDING with a matching ledger posting.",
+      "type": "tech-debt",
+      "priority": "high",
+      "estimatedHours": 7,
+      "acceptanceCriteria": [
+        "Simulated crash between the ledger POST and the status save no longer leaves a permanently PENDING transfer with a real ledger entry",
+        "Reconciliation job runs on startup and logs what it fixed",
+        "New test simulates the crash window and asserts reconciliation resolves it"
+      ]
+    },
+    {
+      "day": 10,
+      "ticketId": "FTP-D10-01",
+      "title": "Stub out an identity-verification call in customer-service",
+      "description": "customer-service currently approves KYC with a fake 18+ age check only. Add a `IdentityVerificationClient` interface (matching the pattern of the other *Client wrappers) with a local stub implementation that simulates a document-verification provider call (integrations/identity in the scaffold), returning a verification result the KYC decision now also depends on.",
+      "type": "feature",
+      "priority": "medium",
+      "estimatedHours": 5,
+      "acceptanceCriteria": [
+        "KYC approval now requires both the age check and a passing stub identity-verification result",
+        "Stub is swappable behind an interface so a real provider integration can replace it later without touching callers",
+        "Test covers an age-eligible customer who fails identity verification being rejected"
+      ]
+    },
+    {
+      "day": 11,
+      "ticketId": "FTP-D11-01",
+      "title": "Fix DirectoryContext losing the active customer on refresh",
+      "description": "DirectoryContext is meant to be the browser-only memory of which customers/accounts have been created, but a page refresh silently drops the active customer selection even though the underlying data still exists server-side, forcing the user to re-search. Persist the active customer/account selection (e.g. to localStorage) and restore it on load, while still treating DirectoryContext as never a cache of server truth.",
+      "type": "bug",
+      "priority": "low",
+      "estimatedHours": 3,
+      "acceptanceCriteria": [
+        "Refreshing the page keeps the previously active customer/account selected",
+        "DirectoryContext still re-validates against the server rather than trusting stale cached data as truth",
+        "New test covers restore-on-load behavior"
+      ]
+    },
+    {
+      "day": 12,
+      "ticketId": "FTP-D12-01",
+      "title": "Scaffold card-service: issue a virtual card",
+      "description": "Stand up services/cards/card-service as a new standalone Maven module following the existing pattern (own database card_db, Flyway migrations, its own AccountServiceClient wrapper to verify the account exists and is active). Implement `POST /api/cards` to issue a virtual debit card linked to an existing, active account.",
+      "type": "feature",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "acceptanceCriteria": [
+        "card-service is a standalone Spring Boot module runnable with `mvn spring-boot:run` against its own database",
+        "Issuing a card for a nonexistent or inactive account is rejected",
+        "Issued card is persisted with status ACTIVE and linked accountId"
+      ]
+    },
+    {
+      "day": 13,
+      "ticketId": "FTP-D13-01",
+      "title": "Add freeze/unfreeze endpoints to card-service",
+      "description": "Add `POST /api/cards/{cardId}/freeze` and `POST /api/cards/{cardId}/unfreeze` to the card-service built on day 12, transitioning card status between ACTIVE and FROZEN, and add a wiring point (a simple synchronous check for now) so any future card-authorization check would see a frozen card as declined.",
+      "type": "feature",
+      "priority": "medium",
+      "estimatedHours": 4,
+      "acceptanceCriteria": [
+        "Freeze/unfreeze endpoints correctly transition and persist card status",
+        "Freezing an already-frozen card (or unfreezing an active one) is a no-op, not an error",
+        "Card status is included in GET /api/cards/{cardId}"
+      ]
+    },
+    {
+      "day": 14,
+      "ticketId": "FTP-D14-01",
+      "title": "Mask card PANs in logs and API responses",
+      "description": "A security review flagged that card-service currently logs and returns the full card number in plaintext. Mask the PAN everywhere except the moment of issuance (return last 4 digits only thereafter), and scrub it from application logs, matching the intent of PCI-DSS handling even though this is a simulated system (see docs/compliance/pci-dss.md).",
+      "type": "security",
+      "priority": "critical",
+      "estimatedHours": 4,
+      "acceptanceCriteria": [
+        "GET/list endpoints for a card never return more than the last 4 digits of the PAN after issuance",
+        "No log statement anywhere in card-service prints a full PAN",
+        "Test asserts the masked shape of the API response"
+      ]
+    },
+    {
+      "day": 15,
+      "ticketId": "FTP-D15-01",
+      "title": "Scaffold lending-service: loan application intake",
+      "description": "Stand up services/lending/lending-service as a new module (own loan_db database, its own CustomerServiceClient to confirm KYC status). Implement `POST /api/loans/applications` to record a loan application (customerId, requestedAmount, termMonths) with status SUBMITTED, rejecting applications from customers who are not KYC-approved.",
+      "type": "feature",
+      "priority": "medium",
+      "estimatedHours": 7,
+      "acceptanceCriteria": [
+        "lending-service runs standalone against its own database",
+        "Application from a non-approved customer is rejected with a clear error",
+        "Submitted application is retrievable by id with status SUBMITTED"
+      ]
+    },
+    {
+      "day": 16,
+      "ticketId": "FTP-D16-01",
+      "title": "Add a credit-check stub to the loan approval workflow",
+      "description": "Extend lending-service with `POST /api/loans/applications/{id}/decision`, which calls a new stub `CreditBureauClient` (standing in for integrations/credit-bureaus) returning a mock credit score, and approves or rejects the application against a simple threshold, transitioning status to APPROVED or REJECTED.",
+      "type": "feature",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "acceptanceCriteria": [
+        "Decision endpoint calls the stub credit client and stores the returned score on the application",
+        "Applications above the threshold move to APPROVED, others to REJECTED",
+        "Re-deciding an already-decided application is rejected (idempotent, not resubmittable)"
+      ]
+    },
+    {
+      "day": 17,
+      "ticketId": "FTP-D17-01",
+      "title": "Add retries and a circuit breaker around downstream calls",
+      "description": "internal-transfer-service's calls to account-service and general-ledger-service currently fail hard on any transient network blip. Wrap both *Client calls with Resilience4j retry (with backoff, capped attempts) and a circuit breaker, and surface a clear FAILED transfer reason when the breaker is open rather than a raw connection exception.",
+      "type": "reliability",
+      "priority": "high",
+      "estimatedHours": 6,
+      "acceptanceCriteria": [
+        "A single simulated transient failure on either downstream call is retried and can still succeed",
+        "Sustained downstream failure opens the circuit breaker and produces a clean FAILED transfer, not a 500",
+        "Retry/breaker thresholds are configurable via application.yml"
+      ]
+    },
+    {
+      "day": 18,
+      "ticketId": "FTP-D18-01",
+      "title": "Incident: duplicate journal entries under concurrent transfer retries",
+      "description": "On-call reported that a client retrying a timed-out transfer request created two journal entries for the same logical transfer, double-moving money. Add an idempotency key (client-supplied or derived) to `POST /api/transfers` and `POST /api/ledger/journal-entries` so a retried request with the same key returns the original result instead of creating a duplicate posting. Write up the incident timeline and root cause alongside the fix.",
+      "type": "incident",
+      "priority": "critical",
+      "estimatedHours": 6,
+      "acceptanceCriteria": [
+        "Two requests with the same idempotency key never produce two journal entries",
+        "First request's result is returned unchanged to a retried duplicate request",
+        "Root-cause writeup included in the PR description with the fix"
+      ]
+    },
+    {
+      "day": 19,
+      "ticketId": "FTP-D19-01",
+      "title": "Publish TransferCompleted to Kafka",
+      "description": "Wire messaging/kafka into internal-transfer-service and publish a TransferCompleted event (transferId, sourceAccountId, destinationAccountId, amount, currency, completedAt) after a transfer is marked COMPLETED — the smallest possible taste of event-driven architecture called out in docs/architecture/vertical-slice.md's 'what to build next', without making the transfer flow itself asynchronous.",
+      "type": "feature",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "acceptanceCriteria": [
+        "A completed transfer produces exactly one TransferCompleted message on the configured topic",
+        "A failed transfer produces no event",
+        "Publish failure is logged but does not roll back or fail the already-completed transfer"
+      ]
+    },
+    {
+      "day": 20,
+      "ticketId": "FTP-D20-01",
+      "title": "Add a notification-service consumer for TransferCompleted",
+      "description": "Create a small new services/notifications/notification-service module that consumes the TransferCompleted topic added on day 19 and logs a structured 'notification sent' line per event (a real provider integration is out of scope) — proving the event contract from day 19 is actually consumable end to end.",
+      "type": "feature",
+      "priority": "low",
+      "estimatedHours": 4,
+      "acceptanceCriteria": [
+        "notification-service consumes TransferCompleted events from Kafka and logs one line per event with transferId and amount",
+        "Service runs standalone and reconnects if Kafka is briefly unavailable",
+        "Integration test publishes a sample event and asserts it is consumed"
+      ]
+    },
+    {
+      "day": 21,
+      "ticketId": "FTP-D21-01",
+      "title": "Split the ledger write path into journal-service",
+      "description": "general-ledger-service currently does journaling, posting, balance computation, and reconciliation all in one process. Begin the split named in the scaffold by extracting the write path (accepting and validating new JournalEntry submissions) into its own journal-service module, with general-ledger-service calling it instead of handling entries inline. Balance/read logic stays in place for now (day 22 continues the split).",
+      "type": "tech-debt",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "acceptanceCriteria": [
+        "journal-service owns entry validation and the debits-equal-credits invariant (JournalEntryTest logic moves with it)",
+        "Existing transfer flow still works unchanged from the caller's perspective",
+        "No regression in JournalEntryTest or other ledger tests"
+      ]
+    },
+    {
+      "day": 22,
+      "ticketId": "FTP-D22-01",
+      "title": "Split out posting-service and balance-service",
+      "description": "Continue the day-21 ledger split: extract posting-service (applies validated journal entries to account posting records) and balance-service (serves the balance/as-of endpoints from day 4) as their own modules reading from posting-service's data, matching the four sub-service names the scaffold already reserves (journal, posting, balance, reconciliation).",
+      "type": "tech-debt",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "acceptanceCriteria": [
+        "posting-service and balance-service run as separate modules with their own responsibilities",
+        "Balance-as-of endpoint from day 4 still returns identical results after the split",
+        "internal-transfer-service and card/lending services are updated to the new endpoints with no behavior change"
+      ]
+    },
+    {
+      "day": 23,
+      "ticketId": "FTP-D23-01",
+      "title": "Add authentication at the api-gateway",
+      "description": "Every endpoint is currently open. Add OAuth2/JWT validation at gateways/api-gateway per docs/architecture/vertical-slice.md's 'what to build next' item 4: reject unauthenticated requests at the gateway, and forward a validated identity (customerId claim) down to services that need it, replacing the current unauthenticated customerId path parameters where applicable.",
+      "type": "security",
+      "priority": "critical",
+      "estimatedHours": 8,
+      "acceptanceCriteria": [
+        "Requests without a valid JWT are rejected at the gateway with 401, never reaching a backend service",
+        "A valid token's identity is available to downstream services via a forwarded header/claim",
+        "Existing docker-compose demo still works end to end with a documented way to obtain a token"
+      ]
+    },
+    {
+      "day": 24,
+      "ticketId": "FTP-D24-01",
+      "title": "Add a login page to web-banking",
+      "description": "Wire the frontend to the day-23 gateway authentication: add a login page/flow that obtains a token and attaches it to every request via the existing apiRequest client, and redirect unauthenticated users to log in before reaching dashboard/accounts/payments/transactions.",
+      "type": "feature",
+      "priority": "high",
+      "estimatedHours": 6,
+      "acceptanceCriteria": [
+        "Unauthenticated visits to any protected page redirect to login",
+        "A successful login stores the token and all subsequent API calls include it",
+        "New Vitest coverage for the auth flow and the updated apiRequest client"
+      ]
+    },
+    {
+      "day": 25,
+      "ticketId": "FTP-D25-01",
+      "title": "Split account-opening-service out of account-service",
+      "description": "account-service currently also does what the scaffold names account-opening-service for. Extract the account-creation path into its own services/accounts/account-opening-service module (own thin database or shared accounts_db with clear table ownership — document the choice), leaving account-service owning account status/tracking only.",
+      "type": "tech-debt",
+      "priority": "low",
+      "estimatedHours": 7,
+      "acceptanceCriteria": [
+        "New account creation goes through account-opening-service, which calls account-service to register the resulting account",
+        "account-service no longer contains account-creation business logic",
+        "All existing callers (internal-transfer-service, cards, lending) unaffected"
+      ]
+    },
+    {
+      "day": 26,
+      "ticketId": "FTP-D26-01",
+      "title": "Batch the accounts-with-balances fan-out",
+      "description": "accountService.fetchAccountsWithBalances in the frontend fans out one balance request per account after listing accounts, which visibly waterfalls for a customer with several accounts. Add a batch balance endpoint (`GET /api/ledger/accounts/balances?ids=...`) and use it from the frontend to replace the per-account fan-out with a single call.",
+      "type": "performance",
+      "priority": "medium",
+      "estimatedHours": 5,
+      "acceptanceCriteria": [
+        "Dashboard/accounts pages load balances for a multi-account customer with one network call, not N",
+        "Batch endpoint returns the same values as the existing per-account endpoint",
+        "Frontend gracefully falls back if the batch endpoint errors"
+      ]
+    },
+    {
+      "day": 27,
+      "ticketId": "FTP-D27-01",
+      "title": "Extend JournalEntryTest for multi-currency rejection",
+      "description": "JournalEntryTest is called out in the README as the most important test in the repository — it proves the ledger cannot construct an unbalanced entry. It does not yet prove the ledger rejects a journal entry whose debit and credit legs are in different currencies (which would be 'balanced' numerically but not financially). Add that coverage at the domain level, and a guard in the constructor if it's missing.",
+      "type": "bug",
+      "priority": "high",
+      "estimatedHours": 3,
+      "acceptanceCriteria": [
+        "A JournalEntry with matching-amount but different-currency legs cannot be constructed",
+        "New test added directly to JournalEntryTest",
+        "Existing balanced/unbalanced test cases still pass unchanged"
+      ]
+    },
+    {
+      "day": 28,
+      "ticketId": "FTP-D28-01",
+      "title": "Harden docker-compose startup ordering",
+      "description": "First boot intermittently shows 'upstream service unreachable' in the UI because the frontend and api-gateway can come up before the five JVMs finish their database migrations. Add proper healthchecks and `depends_on: condition: service_healthy` across deployment/docker/docker-compose.yml so startup order is deterministic instead of relying on 'wait a bit and retry'.",
+      "type": "deployment",
+      "priority": "medium",
+      "estimatedHours": 4,
+      "acceptanceCriteria": [
+        "docker compose up --build no longer shows upstream-unreachable errors on a clean first boot in normal testing",
+        "Each service's healthcheck reflects real readiness (DB migrated, port listening), not just process-up",
+        "Compose file changes are documented in the README's running-it section"
+      ]
+    },
+    {
+      "day": 29,
+      "ticketId": "FTP-D29-01",
+      "title": "Propagate correlation IDs through structured logs",
+      "description": "Building on the request-id header added at the gateway (day 6), switch every backend service's logging to structured JSON output that includes the request id, service name, and elapsed time per request, so a single transfer can be traced across all four services' logs by one id — the minimum viable step toward the observability tooling described in the scaffold.",
+      "type": "reliability",
+      "priority": "medium",
+      "estimatedHours": 5,
+      "acceptanceCriteria": [
+        "Every request-scoped log line across the five services includes the same request id for one end-to-end call",
+        "Logs are structured (JSON) rather than plain text",
+        "A sample transfer's full request id can be grepped across all service logs to reconstruct the call chain"
+      ]
+    },
+    {
+      "day": 30,
+      "ticketId": "FTP-D30-01",
+      "title": "Capstone: CSV account statement export",
+      "description": "Ship a read-only statement export combining several days' work: `GET /api/accounts/{accountId}/statement.csv?from=...&to=...` at the gateway, fanning out to account-service (ownership/active check), general-ledger-service (balance-as-of and postings in range), and returning a CSV of date, description, debit/credit, and running balance. Add a 'Download statement' action on the accounts page in web-banking.",
+      "type": "feature",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "acceptanceCriteria": [
+        "CSV export lists every posting in the date range with a correct running balance column",
+        "Request for an account the customer doesn't own is rejected",
+        "web-banking's accounts page can trigger and download the export"
+      ]
+    }
+  ]
+}

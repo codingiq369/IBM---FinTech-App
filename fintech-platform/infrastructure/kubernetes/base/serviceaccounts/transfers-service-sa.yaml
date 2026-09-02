@@ -1,0 +1,10 @@
+# Managed by Kustomize. Base is environment-agnostic; overlays/<env>/patches/ supplies replicas, resources, image tags, and env-specific config.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: transfers-service
+  annotations:
+    # Real ARN comes from the `iam` module's output in
+    # infrastructure/terraform/environments/<env> -- each overlay patches
+    # this with its environment's actual role.
+    eks.amazonaws.com/role-arn: "REPLACE_WITH_IAM_ROLE_ARN"

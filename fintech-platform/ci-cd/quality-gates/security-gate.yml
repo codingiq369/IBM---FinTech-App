@@ -1,0 +1,11 @@
+# Enforced by .github/workflows/security-scan.yml (Trivy image scan).
+# Severity levels that block a deploy, by environment.
+environments:
+  dev:
+    blocking_severities: [CRITICAL]
+  staging:
+    blocking_severities: [CRITICAL, HIGH]
+  uat:
+    blocking_severities: [CRITICAL, HIGH]
+  production:
+    blocking_severities: [CRITICAL, HIGH, MEDIUM]

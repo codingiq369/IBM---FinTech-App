@@ -1,0 +1,19 @@
+# Out of scope for the four-environment setup (dev/staging/uat/production) --
+# see docs/architecture/disaster-recovery.md and
+# environments/disaster-recovery/README.md for why. Kept as a minimal valid
+# workflow (rather than the empty file it was) so it doesn't show up as a
+# broken workflow in the Actions tab; it does nothing beyond pointing at
+# those docs until DR is actually taken on.
+name: Disaster recovery (not implemented)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  not-implemented:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Disaster recovery automation is not implemented yet."
+          echo "See docs/architecture/disaster-recovery.md and environments/disaster-recovery/README.md."
+          exit 1

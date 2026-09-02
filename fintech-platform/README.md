@@ -57,6 +57,21 @@ npm install
 npm run dev
 ```
 
+### Running a named environment
+
+The same stack can be run shaped like dev, staging, uat, or production --
+its Spring profile, CORS origin, and (offset, so more than one can run at
+once) host ports:
+
+```bash
+cd deployment/docker
+docker compose --env-file ../../environments/staging/.env -f docker-compose.yml up --build
+```
+
+See `docs/operations/deployment.md` for the full four-environment setup
+(Kubernetes overlays, Terraform, CI/CD pipelines per environment) and
+`environments/README.md` for where each piece of it lives.
+
 ### Running the tests
 
 ```bash
@@ -85,11 +100,18 @@ matter what a caller sends it.
 ## Everything else
 
 The rest of the top-level folders (`services/cards`, `services/lending`,
-`ml-platform`, `data-platform`, `infrastructure`, `security`, and so on),
-plus the sibling microservice folders next to the ones implemented here
-(e.g. `services/accounts/account-opening-service`,
+`ml-platform`, `data-platform`, `security`, and so on), plus the sibling
+microservice folders next to the ones implemented here (e.g.
+`services/accounts/account-opening-service`,
 `services/transfers/wire-transfer-service`) and the unused pages in
 `apps/web-banking/src/pages` (cards, loans, investments, etc.) are still
 empty scaffolding — placeholders for where that code will live. See
 `docs/architecture/vertical-slice.md`'s "What to build next" section for a
 suggested order to keep extending this.
+
+`infrastructure` is a partial exception: the Terraform and Kubernetes
+needed to run *this* vertical slice across dev/staging/uat/production is
+real (see `docs/operations/deployment.md`), but it hasn't been applied
+against a real cluster or AWS account, and `infrastructure/service-mesh`,
+`infrastructure/networking`, and most of `infrastructure/cloud` are still
+empty scaffolding like everything else here.

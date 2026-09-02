@@ -1,0 +1,23 @@
+# AML transaction monitoring rules. Not implemented anywhere in the current
+# vertical slice -- internal-transfer-service posts every transfer it's
+# asked to (subject only to sufficient-funds checks in the ledger), with no
+# screening step. This is the target design for when that's built, likely
+# alongside services/fraud (still empty scaffolding).
+rules:
+  - id: large-transfer
+    description: Flag any single transfer over the threshold for review.
+    threshold_amount: 10000.00
+    currency: USD
+  - id: rapid-succession
+    description: Flag more than N transfers from one account within an hour.
+    max_transfers_per_hour: 10
+
+environments:
+  dev:
+    enforcement_mode: log-only
+  staging:
+    enforcement_mode: log-only
+  uat:
+    enforcement_mode: simulate  # target: raises a review case, auto-resolved
+  production:
+    enforcement_mode: enforce   # target: raises a review case, blocks pending review

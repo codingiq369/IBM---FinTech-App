@@ -1,0 +1,19 @@
+# Reference for the "build" pipeline stage -- NOT an executable GitHub
+# Actions workflow. GitHub only runs workflow files that live directly
+# under .github/workflows/ (no subdirectories), so the runnable
+# implementation of this stage lives there instead. This file documents
+# what that implementation does and who calls it, so the stage is
+# discoverable from ci-cd/ the same way environments/<env>/*/README.md
+# points at where each environment's real config actually lives.
+
+stage: build
+purpose: Builds and pushes a Docker image for each of the 6 real components (customer-service,
+  accounts-service, ledger-service, transfers-service, api-gateway, web-banking) to
+  ghcr.io, tagged with the caller's image_tag and the git SHA.
+canonical_workflow: .github/workflows/build.yml
+called_by:
+- .github/workflows/pull-request.yml
+- .github/workflows/cd-dev.yml
+- .github/workflows/cd-staging.yml
+- .github/workflows/cd-uat.yml
+- .github/workflows/cd-production.yml

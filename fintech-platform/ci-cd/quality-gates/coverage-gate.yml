@@ -1,0 +1,17 @@
+# Minimum line coverage required to promote to each environment. Not
+# enforced by any workflow yet -- no coverage tool is wired into
+# unit-tests.yml today. This is the target threshold for when one is
+# (e.g. jacoco for the Java services, vitest --coverage for web-banking).
+environments:
+  dev:
+    minimum_coverage_percent: 0
+    enforce: false
+  staging:
+    minimum_coverage_percent: 50
+    enforce: true
+  uat:
+    minimum_coverage_percent: 65
+    enforce: true
+  production:
+    minimum_coverage_percent: 80
+    enforce: true

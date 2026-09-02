@@ -1,0 +1,20 @@
+# Rate limits for gateways/api-gateway. Not enforced by any code yet -- the
+# gateway's application.yml has routing/CORS but no rate-limiter configured.
+# See docs/api/rate-limiting.md for the target design.
+default:
+  requests_per_minute_per_client: 300
+  burst: 50
+
+environments:
+  dev:
+    requests_per_minute_per_client: 6000   # effectively unlimited locally
+    burst: 1000
+  staging:
+    requests_per_minute_per_client: 1200
+    burst: 200
+  uat:
+    requests_per_minute_per_client: 300
+    burst: 50
+  production:
+    requests_per_minute_per_client: 300
+    burst: 50

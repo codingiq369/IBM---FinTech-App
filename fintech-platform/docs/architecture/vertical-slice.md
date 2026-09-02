@@ -195,3 +195,8 @@ effort:
    everywhere.
 4. **Add authentication** at `gateways/api-gateway` so the demo UI has to
    log in, and pass a validated identity down to the services.
+
+None of the four items above need new environment plumbing to land in --
+dev/staging/uat/production are already wired up (Spring profiles, Docker
+Compose, Kubernetes overlays, Terraform, CI/CD) for whatever this vertical
+slice grows into next. See `docs/operations/deployment.md`.

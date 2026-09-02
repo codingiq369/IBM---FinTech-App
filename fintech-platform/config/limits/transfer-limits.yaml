@@ -1,0 +1,27 @@
+# Limits for services/transfers/internal-transfer-service. Not enforced by
+# any code yet -- InitiateTransferRequest has no limit check today (see
+# "What to build next" in docs/architecture/vertical-slice.md). This is the
+# source of truth for what that check should use once it's built.
+default:
+  currency: USD
+  max_single_transfer_amount: 25000.00
+  daily_transfer_count: 20
+  daily_transfer_amount: 50000.00
+
+environments:
+  dev:
+    max_single_transfer_amount: 1000000.00   # effectively unlimited, for exercising the UI
+    daily_transfer_count: 1000
+    daily_transfer_amount: 1000000.00
+  staging:
+    max_single_transfer_amount: 100000.00
+    daily_transfer_count: 100
+    daily_transfer_amount: 250000.00
+  uat:
+    max_single_transfer_amount: 25000.00
+    daily_transfer_count: 20
+    daily_transfer_amount: 50000.00
+  production:
+    max_single_transfer_amount: 25000.00
+    daily_transfer_count: 20
+    daily_transfer_amount: 50000.00

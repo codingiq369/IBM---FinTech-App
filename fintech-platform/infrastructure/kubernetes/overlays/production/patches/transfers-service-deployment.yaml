@@ -1,0 +1,19 @@
+# Managed by Kustomize.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transfers-service
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: transfers-service
+          image: ghcr.io/fintech-platform/transfers-service:REPLACE_AT_DEPLOY
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1024Mi

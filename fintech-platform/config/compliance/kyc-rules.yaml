@@ -1,0 +1,26 @@
+# KYC rules for services/customer/customer-service.
+#
+# What's actually implemented today: a fake age check -- CustomerService
+# approves anyone 18+ and rejects anyone younger. There is no document
+# verification or sanctions screening call. See "KYC is a fake age check" in
+# docs/architecture/vertical-slice.md. Everything below the `minimum_age`
+# line is target design, not live behavior.
+minimum_age: 18
+
+document_verification:
+  required: true            # not implemented -- see above
+  provider: integrations/identity  # still empty scaffolding
+
+environments:
+  dev:
+    document_verification_mode: skip     # only the age check runs, as today
+    allow_synthetic_identities: true
+  staging:
+    document_verification_mode: skip
+    allow_synthetic_identities: true
+  uat:
+    document_verification_mode: simulate  # target: stubbed provider response
+    allow_synthetic_identities: true
+  production:
+    document_verification_mode: enforce   # target: real provider call
+    allow_synthetic_identities: false

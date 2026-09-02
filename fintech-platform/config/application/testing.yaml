@@ -1,0 +1,25 @@
+# Overrides on top of defaults.yaml for automated test runs (mvn test / npm
+# test / the ci-cd/github-actions/unit-tests.yml and integration-tests.yml
+# workflows). Not one of the four deployed environments (dev/staging/uat/
+# production) -- this is the ephemeral profile CI runs under, matching
+# Spring's default `test` profile scope and Testcontainers-style throwaway
+# databases, kept intentionally fast and unlimited rather than realistic.
+
+logging:
+  level: DEBUG
+
+observability:
+  tracing_sample_rate: 0.0
+  metrics_enabled: false
+
+http:
+  cors_allowed_origins: ["*"]
+  request_timeout_ms: 2000
+
+database:
+  connection_pool:
+    max_size: 2
+    min_idle: 0
+
+resilience:
+  circuit_breaker_enabled: false

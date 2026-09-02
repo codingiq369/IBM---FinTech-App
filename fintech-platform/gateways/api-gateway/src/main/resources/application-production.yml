@@ -1,0 +1,27 @@
+# Environment profile: production
+# Activated via SPRING_PROFILES_ACTIVE=production (see environments/production/.env).
+# CORS is locked to the production web-banking origin -- no wildcard here.
+
+logging:
+  level:
+    root: WARN
+    com.fintechplatform: WARN
+
+management:
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowedOriginPatterns: "${ALLOWED_ORIGIN:https://banking.fintech.example.com}"

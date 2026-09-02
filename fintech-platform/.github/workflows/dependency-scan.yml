@@ -1,0 +1,35 @@
+name: Dependency scan
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  maven:
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - services/customer/customer-service
+          - services/accounts/account-service
+          - ledger/general-ledger-service
+          - services/transfers/internal-transfer-service
+          - gateways/api-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - working-directory: ${{ matrix.service }}
+        run: mvn -B org.owasp:dependency-check-maven:check
+
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - working-directory: apps/web-banking
+        run: npm audit --audit-level=high

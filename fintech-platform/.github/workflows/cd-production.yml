@@ -1,0 +1,29 @@
+name: CD - production
+
+# Manual promotion off a release tag, never off a branch commit directly --
+# see ci-cd/release-management/versioning.md for the tag format.
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Release tag to deploy, e.g. v1.4.0.
+        required: true
+        type: string
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      image_tag: ${{ github.event.inputs.release_tag }}
+      vite_api_base_url: https://api.banking.fintech.example.com
+
+  deploy:
+    needs: build
+    uses: ./.github/workflows/deploy-production.yml
+    with:
+      image_tag: ${{ github.event.inputs.release_tag }}
+    secrets: inherit

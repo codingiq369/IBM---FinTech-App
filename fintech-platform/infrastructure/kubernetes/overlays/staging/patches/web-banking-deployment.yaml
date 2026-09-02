@@ -1,0 +1,19 @@
+# Managed by Kustomize.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-banking
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: web-banking
+          image: ghcr.io/fintech-platform/web-banking:staging-latest
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 150m
+              memory: 96Mi

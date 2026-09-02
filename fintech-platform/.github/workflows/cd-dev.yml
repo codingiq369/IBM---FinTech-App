@@ -1,0 +1,23 @@
+name: CD - dev
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: cd-dev
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      image_tag: dev-${{ github.sha }}
+      vite_api_base_url: https://api.dev.banking.fintech.example.com
+
+  deploy:
+    needs: build
+    uses: ./.github/workflows/deploy-dev.yml
+    with:
+      image_tag: dev-${{ github.sha }}
+    secrets: inherit

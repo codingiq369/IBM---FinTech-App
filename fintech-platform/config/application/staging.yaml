@@ -1,0 +1,16 @@
+# Overrides on top of defaults.yaml for staging.
+# Matches SPRING_PROFILES_ACTIVE=staging and apps/web-banking/.env.staging.
+
+logging:
+  level: INFO
+
+observability:
+  tracing_sample_rate: 0.5
+
+http:
+  cors_allowed_origins: ["https://staging.banking.fintech.example.com"]
+
+database:
+  connection_pool:
+    max_size: 10
+    min_idle: 2

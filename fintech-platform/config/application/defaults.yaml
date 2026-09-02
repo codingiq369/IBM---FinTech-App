@@ -1,0 +1,32 @@
+# Platform-wide defaults. development.yaml / staging.yaml / uat.yaml /
+# production.yaml / testing.yaml each apply on top of this one and only need
+# to state what's different for that environment.
+#
+# This documents, at a platform level, the same values wired into Spring
+# Boot via each service's application.yml + application-<env>.yml and into
+# the frontend via apps/web-banking/.env.<mode> -- it isn't read by a config
+# server at runtime today, it's the source of truth for what those files
+# should implement.
+
+platform:
+  name: fintech-platform
+
+logging:
+  level: INFO
+
+observability:
+  tracing_sample_rate: 0.1
+  metrics_enabled: true
+
+http:
+  request_timeout_ms: 5000
+  cors_allowed_methods: [GET, POST, PUT, DELETE, OPTIONS]
+
+database:
+  connection_pool:
+    max_size: 10
+    min_idle: 2
+
+resilience:
+  retry_max_attempts: 3
+  circuit_breaker_enabled: true

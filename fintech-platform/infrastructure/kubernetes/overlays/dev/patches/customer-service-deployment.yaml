@@ -1,0 +1,19 @@
+# Managed by Kustomize.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-service
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: customer-service
+          image: ghcr.io/fintech-platform/customer-service:dev-latest
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              cpu: 250m
+              memory: 384Mi

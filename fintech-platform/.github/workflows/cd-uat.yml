@@ -1,0 +1,23 @@
+name: CD - uat
+
+# Manual promotion only -- uat is where sign-off testing happens against a
+# specific, deliberately chosen build, not whatever staging most recently
+# ended up with.
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Image tag already pushed by a previous CD run (e.g. staging-<sha>).
+        required: true
+        type: string
+
+concurrency:
+  group: cd-uat
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-uat.yml
+    with:
+      image_tag: ${{ github.event.inputs.image_tag }}
+    secrets: inherit

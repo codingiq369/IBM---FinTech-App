@@ -1,0 +1,6 @@
+# fraud-service
+
+Still empty scaffolding -- services/fraud doesn't exist yet. Out of scope for the multi-environment
+setup in this pass, which only covers the implemented vertical slice
+(customer, accounts, ledger, transfers, api-gateway, web-banking; see
+infrastructure/kubernetes/base and overlays/dev|staging|uat|production).

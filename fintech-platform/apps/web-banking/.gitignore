@@ -1,8 +1,11 @@
-node_modules
-dist
-dist-ssr
-*.local
-.env
-.env.*
-!.env.example
-coverage
+node_modules/
+dist/
+coverage/
+
+# Local overrides only -- .env.development/.env.staging/.env.uat/.env.production
+# are committed on purpose (no secrets in them, just per-environment API URLs).
+.env.local
+.env.*.local
+
+*.log
+.DS_Store

@@ -1,0 +1,22 @@
+# Platform-wide transaction limits, broader than transfer-limits.yaml (which
+# is specific to internal-transfer-service). Not enforced by any code yet --
+# scoped here for when services/cards and services/lending exist and need
+# the same kind of per-environment ceiling.
+default:
+  currency: USD
+  max_transaction_amount: 50000.00
+  daily_transaction_count: 50
+
+environments:
+  dev:
+    max_transaction_amount: 1000000.00
+    daily_transaction_count: 1000
+  staging:
+    max_transaction_amount: 250000.00
+    daily_transaction_count: 200
+  uat:
+    max_transaction_amount: 50000.00
+    daily_transaction_count: 50
+  production:
+    max_transaction_amount: 50000.00
+    daily_transaction_count: 50

@@ -1,0 +1,55 @@
+# Managed by Kustomize. Base is environment-agnostic; overlays/<env>/patches/ supplies replicas, resources, image tags, and env-specific config.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transfers-service
+  labels:
+    app: transfers-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transfers-service
+  template:
+    metadata:
+      labels:
+        app: transfers-service
+    spec:
+      serviceAccountName: transfers-service
+      containers:
+        - name: transfers-service
+          image: ghcr.io/fintech-platform/transfers-service:latest
+          ports:
+            - name: http
+              containerPort: 8084
+          envFrom:
+            - configMapRef:
+                name: fintech-config
+            - secretRef:
+                name: fintech-db-credentials
+          env:
+            - name: DB_URL
+              value: "jdbc:postgresql://$(DB_HOST):$(DB_PORT)/transfers_db"
+            - name: ACCOUNTS_SERVICE_URL
+              value: "http://accounts-service:8082"
+            - name: LEDGER_SERVICE_URL
+              value: "http://ledger-service:8083"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8084
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8084
+            initialDelaySeconds: 30
+            periodSeconds: 15

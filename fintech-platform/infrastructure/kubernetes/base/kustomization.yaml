@@ -1,0 +1,41 @@
+# Managed by Kustomize. Base is environment-agnostic; overlays/<env>/patches/ supplies replicas, resources, image tags, and env-specific config.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+commonLabels:
+  app.kubernetes.io/part-of: fintech-platform
+  app.kubernetes.io/managed-by: kustomize
+
+resources:
+  - namespaces/namespace.yaml
+  - deployments/customer-service.yaml
+  - deployments/accounts-service.yaml
+  - deployments/ledger-service.yaml
+  - deployments/transfers-service.yaml
+  - deployments/api-gateway.yaml
+  - deployments/web-banking.yaml
+  - services/customer-service.yaml
+  - services/accounts-service.yaml
+  - services/ledger-service.yaml
+  - services/transfers-service.yaml
+  - services/api-gateway.yaml
+  - services/web-banking.yaml
+  - configmaps/fintech-config.yaml
+  - secrets/fintech-db-credentials.yaml
+  - ingress/ingress.yaml
+  - network-policies/default-deny.yaml
+  - network-policies/allow-ingress-to-edge.yaml
+  - network-policies/allow-gateway-to-services.yaml
+  - pod-disruption-budgets/customer-service-pdb.yaml
+  - pod-disruption-budgets/accounts-service-pdb.yaml
+  - pod-disruption-budgets/ledger-service-pdb.yaml
+  - pod-disruption-budgets/transfers-service-pdb.yaml
+  - pod-disruption-budgets/api-gateway-pdb.yaml
+  - pod-disruption-budgets/web-banking-pdb.yaml
+  - resource-quotas/resource-quota.yaml
+  - serviceaccounts/customer-service-sa.yaml
+  - serviceaccounts/accounts-service-sa.yaml
+  - serviceaccounts/ledger-service-sa.yaml
+  - serviceaccounts/transfers-service-sa.yaml
+  - serviceaccounts/api-gateway-sa.yaml
+  - serviceaccounts/web-banking-sa.yaml

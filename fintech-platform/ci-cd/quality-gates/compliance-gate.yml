@@ -1,0 +1,21 @@
+# Before promoting to an environment, its config/compliance/*.yaml
+# `environments.<env>` block should be at least this strict. Not enforced
+# by any workflow yet -- manual sign-off today, see
+# ci-cd/release-management/release-checklist.md.
+environments:
+  dev:
+    kyc_document_verification_mode: skip
+    aml_enforcement_mode: log-only
+    sanctions_mode: skip
+  staging:
+    kyc_document_verification_mode: skip
+    aml_enforcement_mode: log-only
+    sanctions_mode: skip
+  uat:
+    kyc_document_verification_mode: simulate
+    aml_enforcement_mode: simulate
+    sanctions_mode: simulate
+  production:
+    kyc_document_verification_mode: enforce
+    aml_enforcement_mode: enforce
+    sanctions_mode: enforce

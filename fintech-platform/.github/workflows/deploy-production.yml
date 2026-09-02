@@ -1,0 +1,47 @@
+name: Deploy to production
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name fintech-production --region us-east-1
+
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Point the overlay at this build
+        working-directory: infrastructure/kubernetes/overlays/production
+        run: |
+          for svc in customer-service accounts-service ledger-service transfers-service api-gateway web-banking; do
+            kustomize edit set image "ghcr.io/${{ github.repository }}/$svc=ghcr.io/${{ github.repository }}/$svc:${{ inputs.image_tag }}"
+          done
+
+      - name: Apply
+        run: kubectl apply -k infrastructure/kubernetes/overlays/production
+
+      - name: Wait for rollout
+        run: |
+          for d in customer-service accounts-service ledger-service transfers-service api-gateway web-banking; do
+            kubectl rollout status deployment/$d -n fintech-production --timeout=180s
+          done
+
+      - name: Health check
+        run: bash deployment/scripts/health-check.sh production

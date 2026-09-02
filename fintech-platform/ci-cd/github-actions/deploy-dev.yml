@@ -1,0 +1,14 @@
+# Reference for the "deploy-dev" pipeline stage -- NOT an executable GitHub
+# Actions workflow. GitHub only runs workflow files that live directly
+# under .github/workflows/ (no subdirectories), so the runnable
+# implementation of this stage lives there instead. This file documents
+# what that implementation does and who calls it, so the stage is
+# discoverable from ci-cd/ the same way environments/<env>/*/README.md
+# points at where each environment's real config actually lives.
+
+stage: deploy-dev
+purpose: kustomize edit set image + kubectl apply -k against infrastructure/kubernetes/overlays/dev,
+  then a rollout wait and health check.
+canonical_workflow: .github/workflows/deploy-dev.yml
+called_by:
+- .github/workflows/cd-dev.yml

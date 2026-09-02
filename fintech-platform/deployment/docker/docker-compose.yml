@@ -1,19 +1,39 @@
-name: fintech-platform-slice
+# Runs the implemented vertical slice (customer -> accounts -> ledger ->
+# transfers -> gateway -> web-banking) as one stack. Plain `docker compose up
+# --build` here (no --env-file) uses the defaults below, which match the
+# quickstart in the root README exactly -- nothing about that command
+# changes.
+#
+# To run this same stack shaped like a specific environment (its Spring
+# profile, its ports, its CORS origin), pass that environment's .env file:
+#
+#   docker compose --env-file ../../environments/development/.env -f docker-compose.yml up --build
+#   docker compose --env-file ../../environments/staging/.env     -f docker-compose.yml up --build
+#   docker compose --env-file ../../environments/uat/.env         -f docker-compose.yml up --build
+#   docker compose --env-file ../../environments/production/.env -f docker-compose.yml up --build
+#
+# The real staging/uat/production environments are not meant to run from a
+# laptop via docker-compose long-term -- that's what infrastructure/terraform
+# and infrastructure/kubernetes/overlays are for. This lets you reproduce an
+# environment's profile and CORS/logging behavior locally before it ever
+# reaches a cluster, and each environment's .env uses different host ports
+# and a different COMPOSE_PROJECT_NAME so more than one can run at once.
+name: ${COMPOSE_PROJECT_NAME:-fintech-platform-slice}
 
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: fintech
-      POSTGRES_PASSWORD: fintech
-      POSTGRES_DB: fintech
+      POSTGRES_USER: ${POSTGRES_USER:-fintech}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fintech}
+      POSTGRES_DB: ${POSTGRES_DB:-fintech}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fintech"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fintech}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -23,10 +43,11 @@ services:
       context: ../../services/customer/customer-service
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/customer_db
-      DB_USERNAME: fintech
-      DB_PASSWORD: fintech
+      DB_USERNAME: ${POSTGRES_USER:-fintech}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-fintech}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
     ports:
-      - "8081:8081"
+      - "${CUSTOMER_SERVICE_PORT:-8081}:8081"
     depends_on:
       postgres:
         condition: service_healthy
@@ -36,10 +57,11 @@ services:
       context: ../../ledger/general-ledger-service
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/ledger_db
-      DB_USERNAME: fintech
-      DB_PASSWORD: fintech
+      DB_USERNAME: ${POSTGRES_USER:-fintech}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-fintech}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
     ports:
-      - "8083:8083"
+      - "${LEDGER_SERVICE_PORT:-8083}:8083"
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,12 +71,13 @@ services:
       context: ../../services/accounts/account-service
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/accounts_db
-      DB_USERNAME: fintech
-      DB_PASSWORD: fintech
+      DB_USERNAME: ${POSTGRES_USER:-fintech}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-fintech}
       CUSTOMER_SERVICE_URL: http://customer-service:8081
       LEDGER_SERVICE_URL: http://ledger-service:8083
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
     ports:
-      - "8082:8082"
+      - "${ACCOUNTS_SERVICE_PORT:-8082}:8082"
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,12 +91,13 @@ services:
       context: ../../services/transfers/internal-transfer-service
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/transfers_db
-      DB_USERNAME: fintech
-      DB_PASSWORD: fintech
+      DB_USERNAME: ${POSTGRES_USER:-fintech}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-fintech}
       ACCOUNTS_SERVICE_URL: http://accounts-service:8082
       LEDGER_SERVICE_URL: http://ledger-service:8083
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
     ports:
-      - "8084:8084"
+      - "${TRANSFERS_SERVICE_PORT:-8084}:8084"
     depends_on:
       postgres:
         condition: service_healthy
@@ -90,8 +114,10 @@ services:
       ACCOUNTS_SERVICE_URL: http://accounts-service:8082
       LEDGER_SERVICE_URL: http://ledger-service:8083
       TRANSFERS_SERVICE_URL: http://transfers-service:8084
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-*}
     ports:
-      - "8080:8080"
+      - "${API_GATEWAY_PORT:-8080}:8080"
     depends_on:
       - customer-service
       - accounts-service
@@ -101,8 +127,13 @@ services:
   web-banking:
     build:
       context: ../../apps/web-banking
+      args:
+        # Vite bakes this into the built JS at image-build time (see the
+        # comment in apps/web-banking/Dockerfile), so it has to be a build
+        # arg, not a runtime `environment:` entry like the services above.
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
     ports:
-      - "3000:80"
+      - "${WEB_BANKING_PORT:-3000}:80"
     depends_on:
       - api-gateway
 

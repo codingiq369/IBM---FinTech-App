@@ -1,0 +1,17 @@
+# Sanctions / watchlist screening. Not implemented anywhere in the current
+# vertical slice -- customer-service has no screening call. Target design
+# for when integrations/identity or a dedicated provider integration exists.
+screening:
+  on_customer_onboarding: true
+  on_transfer_counterparty: false   # transfers are internal-account-to-account only today
+  lists: [OFAC-SDN, UN-Consolidated, EU-Consolidated]
+
+environments:
+  dev:
+    mode: skip
+  staging:
+    mode: skip
+  uat:
+    mode: simulate   # target: stubbed provider, always returns "no match"
+  production:
+    mode: enforce     # target: real provider call, blocks on match pending review

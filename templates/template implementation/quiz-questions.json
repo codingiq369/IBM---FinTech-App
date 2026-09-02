@@ -1,0 +1,564 @@
+{
+  "quizQuestions": [
+    {
+      "id": "QZ-101",
+      "topic": "OOP Fundamentals",
+      "difficulty": "Easy",
+      "question": "IBM interviewers frequently open with this: which four concepts make up the core pillars of Object-Oriented Programming?",
+      "options": [
+        "Compilation, linking, loading, execution",
+        "Encapsulation, inheritance, polymorphism, abstraction",
+        "Normalization, indexing, joins, transactions",
+        "Stacks, queues, trees, graphs"
+      ],
+      "correctIndex": 1,
+      "explanation": "Encapsulation, inheritance, polymorphism, and abstraction are the four pillars of OOP, and IBM's technical rounds routinely start here before drilling into specifics."
+    },
+    {
+      "id": "QZ-102",
+      "topic": "Java - Overloading vs Overriding",
+      "difficulty": "Easy",
+      "question": "A common IBM Java-round question: what is the key difference between method overloading and method overriding?",
+      "options": [
+        "Overloading happens at runtime, overriding at compile time",
+        "Overloading is resolved at compile time (same class, different signature); overriding is resolved at runtime (subclass redefines a superclass method)",
+        "They are the same thing with different names",
+        "Overriding requires a static method; overloading requires a final method"
+      ],
+      "correctIndex": 1,
+      "explanation": "Overloading is compile-time (static) polymorphism based on differing method signatures in the same class; overriding is runtime (dynamic) polymorphism where a subclass redefines an inherited method."
+    },
+    {
+      "id": "QZ-103",
+      "topic": "Java - Static Members",
+      "difficulty": "Easy",
+      "question": "What does declaring a variable or method `static` in Java mean?",
+      "options": [
+        "It belongs to the class rather than any single instance, shared across all objects",
+        "It can never be changed after initialization",
+        "It is automatically thread-safe",
+        "It is only visible within the same package"
+      ],
+      "correctIndex": 0,
+      "explanation": "A static member belongs to the class itself, not to any particular instance, and is shared by all instances of the class."
+    },
+    {
+      "id": "QZ-104",
+      "topic": "Java - Constructors",
+      "difficulty": "Easy",
+      "question": "Which statement about Java constructors is correct?",
+      "options": [
+        "A constructor must have a return type of void",
+        "A constructor has the same name as its class and no return type at all",
+        "A class can have at most one constructor",
+        "Constructors cannot be overloaded"
+      ],
+      "correctIndex": 1,
+      "explanation": "A constructor shares its class's name, has no return type (not even void), and a class may define multiple overloaded constructors."
+    },
+    {
+      "id": "QZ-105",
+      "topic": "Recursion",
+      "difficulty": "Easy",
+      "question": "What is the essential requirement for a recursive function to terminate correctly?",
+      "options": [
+        "It must call itself an even number of times",
+        "It must have a base case that stops further recursive calls",
+        "It must use a while loop internally",
+        "It must return void"
+      ],
+      "correctIndex": 1,
+      "explanation": "Every correct recursive function needs a base case reached in a finite number of steps, or it recurses indefinitely and overflows the call stack."
+    },
+    {
+      "id": "QZ-106",
+      "topic": "Exception Handling",
+      "difficulty": "Easy",
+      "question": "In Java, what's the difference between a checked and an unchecked exception?",
+      "options": [
+        "Checked exceptions must be declared or caught at compile time; unchecked (RuntimeException) exceptions are not enforced by the compiler",
+        "Checked exceptions only occur in production; unchecked only in tests",
+        "Unchecked exceptions can only be thrown from static methods",
+        "There is no difference in modern Java"
+      ],
+      "correctIndex": 0,
+      "explanation": "Checked exceptions (subclasses of Exception, excluding RuntimeException) must be declared with `throws` or caught, while unchecked exceptions (RuntimeException and its subclasses) are not compiler-enforced."
+    },
+    {
+      "id": "QZ-107",
+      "topic": "Data Structures - Arrays vs Linked Lists",
+      "difficulty": "Easy",
+      "question": "What is the main trade-off between arrays and linked lists?",
+      "options": [
+        "Arrays give O(1) random access but costly insert/delete in the middle; linked lists give O(1) insert/delete at a known node but O(n) access",
+        "Linked lists always use less memory than arrays",
+        "Arrays cannot store primitive types",
+        "Linked lists support random access in O(1) time"
+      ],
+      "correctIndex": 0,
+      "explanation": "Arrays offer constant-time indexed access but shifting elements for insertion/deletion is O(n); linked lists offer O(1) insertion/deletion at a known position but only sequential O(n) access."
+    },
+    {
+      "id": "QZ-108",
+      "topic": "Data Structures - Stack vs Queue",
+      "difficulty": "Easy",
+      "question": "Which ordering discipline does a Stack follow, as opposed to a Queue?",
+      "options": [
+        "FIFO (First In, First Out)",
+        "LIFO (Last In, First Out)",
+        "Random access order",
+        "Priority order only"
+      ],
+      "correctIndex": 1,
+      "explanation": "A stack is LIFO — the last element pushed is the first popped — while a queue is FIFO, serving elements in the order they arrived."
+    },
+    {
+      "id": "QZ-109",
+      "topic": "Java Collections - HashMap vs TreeMap",
+      "difficulty": "Medium",
+      "question": "What is the main behavioral difference between a HashMap and a TreeMap in Java?",
+      "options": [
+        "HashMap keeps keys sorted; TreeMap does not",
+        "HashMap gives average O(1) get/put with no ordering guarantee; TreeMap gives O(log n) get/put but keeps keys in sorted order",
+        "TreeMap cannot store null keys or values under any circumstance",
+        "HashMap and TreeMap have identical time complexity for all operations"
+      ],
+      "correctIndex": 1,
+      "explanation": "HashMap offers average constant-time operations with no ordering, while TreeMap is backed by a red-black tree, giving logarithmic operations but sorted key iteration."
+    },
+    {
+      "id": "QZ-110",
+      "topic": "Java Collections - ArrayList vs LinkedList",
+      "difficulty": "Medium",
+      "question": "When would a LinkedList typically outperform an ArrayList in Java?",
+      "options": [
+        "When you need frequent random-index reads",
+        "When you frequently insert/remove elements at the beginning or middle of the list",
+        "When memory overhead per element must be minimized",
+        "LinkedList always outperforms ArrayList"
+      ],
+      "correctIndex": 1,
+      "explanation": "LinkedList avoids the O(n) shifting ArrayList needs for mid-list insert/remove, at the cost of O(n) indexed access and higher per-node memory overhead."
+    },
+    {
+      "id": "QZ-111",
+      "topic": "Java - Shallow vs Deep Copy",
+      "difficulty": "Medium",
+      "question": "What distinguishes a shallow copy from a deep copy of an object?",
+      "options": [
+        "A shallow copy duplicates primitive fields but shares references to nested objects; a deep copy also recursively duplicates the nested objects",
+        "A deep copy is always faster than a shallow copy",
+        "A shallow copy only works on interfaces",
+        "There is no practical difference in Java"
+      ],
+      "correctIndex": 0,
+      "explanation": "A shallow copy copies top-level fields, so mutable nested objects are still shared between original and copy; a deep copy recursively clones nested objects too, fully isolating the two."
+    },
+    {
+      "id": "QZ-112",
+      "topic": "Concurrency - Thread Safety",
+      "difficulty": "Medium",
+      "question": "What does it mean for a piece of code to be 'thread-safe'?",
+      "options": [
+        "It runs faster when multiple threads use it",
+        "It behaves correctly when accessed by multiple threads concurrently, without corrupting shared state",
+        "It can only be executed by one thread ever",
+        "It automatically parallelizes itself across CPU cores"
+      ],
+      "correctIndex": 1,
+      "explanation": "Thread-safe code produces correct results and preserves invariants even when multiple threads call into it concurrently, typically via synchronization or immutability."
+    },
+    {
+      "id": "QZ-113",
+      "topic": "Concurrency - Multithreading vs Multiprocessing",
+      "difficulty": "Medium",
+      "question": "What is the key difference between multithreading and multiprocessing?",
+      "options": [
+        "Multithreading runs multiple threads sharing one process's memory space; multiprocessing runs multiple independent processes each with its own memory space",
+        "Multiprocessing is only possible on a single CPU core",
+        "They are interchangeable terms for the same mechanism",
+        "Multithreading always requires a distributed system"
+      ],
+      "correctIndex": 0,
+      "explanation": "Threads within a process share memory (fast communication, but risk of race conditions), while separate processes are isolated with their own memory space (safer, but costlier inter-process communication)."
+    },
+    {
+      "id": "QZ-114",
+      "topic": "Concurrency - Callable vs Runnable",
+      "difficulty": "Medium",
+      "question": "In Java's concurrency API, what is the main difference between Runnable and Callable?",
+      "options": [
+        "Runnable can return a result and throw checked exceptions; Callable cannot",
+        "Callable can return a result (via `call()`) and throw checked exceptions; Runnable's `run()` returns void and cannot throw checked exceptions",
+        "Runnable is only usable with virtual threads",
+        "There is no meaningful difference"
+      ],
+      "correctIndex": 1,
+      "explanation": "Callable<V>.call() can return a value and declare checked exceptions, while Runnable.run() returns nothing and cannot throw checked exceptions."
+    },
+    {
+      "id": "QZ-115",
+      "topic": "Concurrency - volatile keyword",
+      "difficulty": "Medium",
+      "question": "What guarantee does Java's `volatile` keyword provide?",
+      "options": [
+        "It makes compound operations like increment atomic",
+        "It ensures a variable's writes are immediately visible to all threads, preventing thread-local caching of a stale value",
+        "It prevents a variable from ever being garbage collected",
+        "It automatically synchronizes every method in the class"
+      ],
+      "correctIndex": 1,
+      "explanation": "volatile guarantees visibility — every read sees the latest write from any thread — but it does not make compound actions like `count++` atomic."
+    },
+    {
+      "id": "QZ-116",
+      "topic": "Java - Garbage Collection",
+      "difficulty": "Medium",
+      "question": "What is the primary purpose of Java's garbage collector?",
+      "options": [
+        "To compile Java bytecode into native machine code",
+        "To automatically reclaim memory occupied by objects that are no longer reachable from any live reference",
+        "To optimize SQL queries at runtime",
+        "To manage thread scheduling"
+      ],
+      "correctIndex": 1,
+      "explanation": "The garbage collector automatically identifies and frees memory used by objects no longer reachable by the running program, removing the need for manual memory management."
+    },
+    {
+      "id": "QZ-117",
+      "topic": "Java - Immutability",
+      "difficulty": "Medium",
+      "question": "Why is Java's `String` class immutable?",
+      "options": [
+        "Immutability makes strings automatically faster to concatenate",
+        "It enables safe sharing across threads, safe use as a HashMap key (stable hashCode), and string-pool reuse, without another piece of code ever changing the value unexpectedly",
+        "Immutable classes cannot implement interfaces",
+        "Java requires all final classes to be immutable"
+      ],
+      "correctIndex": 1,
+      "explanation": "String immutability enables safe sharing between threads and callers, a stable hashCode for use as a map key, and safe reuse of interned string-pool literals."
+    },
+    {
+      "id": "QZ-118",
+      "topic": "Java - final vs finally vs finalize",
+      "difficulty": "Medium",
+      "question": "What do `final`, `finally`, and `finalize` each do in Java?",
+      "options": [
+        "They are three names for the same keyword in different Java versions",
+        "`final` prevents reassignment/overriding/subclassing; `finally` is a block that always executes after try/catch; `finalize` was a (now-deprecated) hook called before garbage collection",
+        "All three control access modifiers",
+        "`finalize` is a loop construct and `finally` is a variable modifier"
+      ],
+      "correctIndex": 1,
+      "explanation": "`final` marks something as non-modifiable/non-overridable, `finally` is a try-block clause guaranteed to run, and `finalize()` was a deprecated Object method once used for pre-GC cleanup."
+    },
+    {
+      "id": "QZ-119",
+      "topic": "Design Patterns - Singleton",
+      "difficulty": "Medium",
+      "question": "What problem does the Singleton design pattern solve, and what's a key concern when applying it in multithreaded code?",
+      "options": [
+        "It ensures a class has exactly one instance and provides a global access point; naive lazy initialization must be made thread-safe to avoid creating two instances under concurrent first access",
+        "It guarantees a class can never be subclassed",
+        "It automatically load-balances requests across instances",
+        "It has no relevance to multithreading"
+      ],
+      "correctIndex": 0,
+      "explanation": "Singleton restricts a class to one instance with a global access point; a naive lazy-init implementation is a classic race condition unless guarded (double-checked locking, enum singleton, or eager init)."
+    },
+    {
+      "id": "QZ-120",
+      "topic": "Design Patterns - Observer",
+      "difficulty": "Medium",
+      "question": "What does the Observer design pattern let you do?",
+      "options": [
+        "Restrict a class to a single instance",
+        "Define a one-to-many dependency so that when one object (the subject) changes state, all its registered dependents (observers) are notified automatically",
+        "Convert an incompatible interface into one a client expects",
+        "Serialize an object graph to disk"
+      ],
+      "correctIndex": 1,
+      "explanation": "Observer defines a publish/subscribe relationship: when the subject's state changes, every registered observer is notified — the pattern behind event listeners and pub/sub systems."
+    },
+    {
+      "id": "QZ-121",
+      "topic": "Distributed Systems - Saga Pattern",
+      "difficulty": "Hard",
+      "question": "In a microservices architecture, what problem does the Saga pattern address?",
+      "options": [
+        "Load balancing HTTP traffic across service instances",
+        "Managing a distributed transaction across multiple services by breaking it into a sequence of local transactions, each with a compensating action to undo it if a later step fails",
+        "Encrypting data at rest across services",
+        "Caching read-heavy endpoints"
+      ],
+      "correctIndex": 1,
+      "explanation": "Since a single ACID transaction can't span multiple services' databases, the Saga pattern chains local transactions with compensating actions, rolling back completed steps if a later step fails."
+    },
+    {
+      "id": "QZ-122",
+      "topic": "Databases - Indexing",
+      "difficulty": "Medium",
+      "question": "What is the main trade-off introduced by adding a database index?",
+      "options": [
+        "Indexes only ever help and have no cost",
+        "Indexes speed up reads that use the indexed column(s) but add storage overhead and slow down writes, since the index must be updated too",
+        "Indexes remove the need for primary keys",
+        "Indexes make schema changes impossible"
+      ],
+      "correctIndex": 1,
+      "explanation": "An index speeds up lookups/sorts on the indexed column(s) but costs extra storage and slows inserts/updates/deletes because the index structure must be maintained alongside the table."
+    },
+    {
+      "id": "QZ-123",
+      "topic": "Databases - ACID",
+      "difficulty": "Medium",
+      "question": "What do the four ACID properties of a database transaction stand for?",
+      "options": [
+        "Atomicity, Consistency, Isolation, Durability",
+        "Availability, Concurrency, Integrity, Durability",
+        "Atomicity, Caching, Indexing, Delivery",
+        "Authentication, Consistency, Idempotency, Durability"
+      ],
+      "correctIndex": 0,
+      "explanation": "ACID stands for Atomicity (all-or-nothing), Consistency (valid state to valid state), Isolation (concurrent transactions don't interfere), and Durability (committed changes survive failures)."
+    },
+    {
+      "id": "QZ-124",
+      "topic": "Architecture - Microservices vs Monolith",
+      "difficulty": "Medium",
+      "question": "What is a defining characteristic that distinguishes a microservices architecture from a monolith?",
+      "options": [
+        "Microservices always use less total infrastructure than a monolith",
+        "Microservices split an application into independently deployable services, each typically owning its own data store, communicating over a network (e.g. HTTP/messaging) instead of in-process calls",
+        "A monolith cannot use a relational database",
+        "Microservices require the frontend and backend to share one process"
+      ],
+      "correctIndex": 1,
+      "explanation": "Microservices decompose an application into independently deployable, often independently-data-owning services that communicate over the network, trading operational complexity for independent scaling and deployment."
+    },
+    {
+      "id": "QZ-125",
+      "topic": "APIs - REST vs SOAP",
+      "difficulty": "Medium",
+      "question": "How does REST typically differ from SOAP as an API style?",
+      "options": [
+        "REST is a strict protocol with a mandatory XML envelope; SOAP is an architectural style with no fixed message format",
+        "REST is an architectural style typically using HTTP verbs and JSON, generally lighter-weight; SOAP is a protocol with a strict XML envelope, built-in error handling, and formal contracts (WSDL)",
+        "SOAP cannot be used over HTTP",
+        "REST requires a SOAP envelope internally"
+      ],
+      "correctIndex": 1,
+      "explanation": "REST is an architectural style leaning on HTTP semantics and commonly JSON payloads; SOAP is a stricter, XML-based protocol with a formal envelope/contract (WSDL) and built-in extensions like WS-Security."
+    },
+    {
+      "id": "QZ-126",
+      "topic": "Programming Fundamentals - Compile-time vs Runtime Errors",
+      "difficulty": "Easy",
+      "question": "What is the difference between a compile-time error and a runtime error?",
+      "options": [
+        "A compile-time error is caught by the compiler before the program runs; a runtime error occurs while the program is executing",
+        "Runtime errors are always fatal; compile-time errors never are",
+        "Compile-time errors only happen in interpreted languages",
+        "They are the same category of error in Java"
+      ],
+      "correctIndex": 0,
+      "explanation": "Compile-time errors (syntax errors, type mismatches) are caught before execution; runtime errors (like a NullPointerException) only surface while the program is running."
+    },
+    {
+      "id": "QZ-127",
+      "topic": "Operating Systems - Deadlock",
+      "difficulty": "Medium",
+      "question": "What is a deadlock in the context of concurrent programming?",
+      "options": [
+        "A performance optimization technique",
+        "A state where two or more threads/processes are each waiting on a resource held by the other, so none can proceed",
+        "A guaranteed outcome of using multiple threads",
+        "An error that only happens in single-threaded programs"
+      ],
+      "correctIndex": 1,
+      "explanation": "A deadlock occurs when a cycle of threads/processes each hold a resource the next one in the cycle needs, so all of them block forever."
+    },
+    {
+      "id": "QZ-128",
+      "topic": "System Design - LRU Cache",
+      "difficulty": "Hard",
+      "question": "An LRU (Least Recently Used) cache with O(1) get and put is classically implemented using which combination of data structures?",
+      "options": [
+        "A sorted array and binary search",
+        "A hash map (for O(1) key lookup) combined with a doubly linked list (for O(1) reordering/eviction of the least recently used entry)",
+        "Two separate unsorted arrays",
+        "A single min-heap keyed by access time"
+      ],
+      "correctIndex": 1,
+      "explanation": "A HashMap gives O(1) key-to-node lookup, and a doubly linked list lets you move a node to the front on access and evict the tail (least recently used) in O(1), avoiding any array shifting."
+    },
+    {
+      "id": "QZ-129",
+      "topic": "Operating Systems - Process vs Thread",
+      "difficulty": "Medium",
+      "question": "What is the fundamental difference between a process and a thread?",
+      "options": [
+        "A process is a lightweight unit inside a thread",
+        "A process is an independent program in execution with its own memory space; a thread is a lightweight unit of execution within a process, sharing that process's memory with other threads",
+        "Threads always run on separate CPUs from their parent process",
+        "There is no practical difference in modern operating systems"
+      ],
+      "correctIndex": 1,
+      "explanation": "A process owns its own isolated memory/resources; threads are execution units within a process that share that process's memory space, making them cheaper to create and communicate between."
+    },
+    {
+      "id": "QZ-130",
+      "topic": "Operating Systems - Semaphore vs Mutex",
+      "difficulty": "Hard",
+      "question": "How does a semaphore differ from a mutex?",
+      "options": [
+        "They are identical synchronization primitives with different names",
+        "A mutex allows only one thread to hold the lock at a time (with ownership); a semaphore maintains a count and can allow a fixed number of concurrent holders, without a strict ownership requirement",
+        "A semaphore can only be used in single-threaded programs",
+        "A mutex can be signaled by a thread that doesn't hold it, but a semaphore cannot"
+      ],
+      "correctIndex": 1,
+      "explanation": "A mutex is a binary lock owned by whichever single thread holds it; a semaphore holds a count permitting up to N concurrent accesses and isn't tied to a specific owning thread."
+    },
+    {
+      "id": "QZ-131",
+      "topic": "Operating Systems - Virtual Memory",
+      "difficulty": "Medium",
+      "question": "What problem does virtual memory solve for an operating system?",
+      "options": [
+        "It lets programs use more logical memory than is physically installed, by mapping virtual addresses to physical RAM or disk (swap/page file), and isolates each process's address space",
+        "It permanently increases the physical RAM in the machine",
+        "It replaces the need for a CPU cache",
+        "It is only used by database systems, not general programs"
+      ],
+      "correctIndex": 0,
+      "explanation": "Virtual memory gives each process its own address space, maps pages to physical RAM or disk on demand, and lets total logical memory exceed physical RAM, at the cost of possible page faults."
+    },
+    {
+      "id": "QZ-132",
+      "topic": "Algorithms - Quick Sort vs Merge Sort",
+      "difficulty": "Hard",
+      "question": "What is a key practical trade-off between Quick Sort and Merge Sort?",
+      "options": [
+        "Quick Sort is in-place with good average-case performance but O(n^2) worst case on bad pivots; Merge Sort guarantees O(n log n) but typically needs O(n) extra space",
+        "Merge Sort cannot sort linked lists",
+        "Quick Sort is always stable; Merge Sort never is",
+        "They have identical time and space complexity in all cases"
+      ],
+      "correctIndex": 0,
+      "explanation": "Quick Sort is typically faster in practice and sorts in-place but degrades to O(n^2) with poor pivot choices; Merge Sort guarantees O(n log n) in all cases but usually requires linear auxiliary space."
+    },
+    {
+      "id": "QZ-133",
+      "topic": "Data Structures - Binary Tree Height",
+      "difficulty": "Medium",
+      "question": "How is the height of a binary tree typically defined and computed?",
+      "options": [
+        "The total number of nodes in the tree",
+        "The number of edges (or nodes, by some conventions) on the longest path from the root to a leaf, usually computed recursively as 1 + max(height(left), height(right))",
+        "The number of leaf nodes only",
+        "It is always equal to log2(number of nodes) for any binary tree"
+      ],
+      "correctIndex": 1,
+      "explanation": "Height is the longest root-to-leaf path, computed recursively; it only equals log2(n) for a balanced tree, not for an arbitrary (e.g. skewed) binary tree."
+    },
+    {
+      "id": "QZ-134",
+      "topic": "Software Engineering - SDLC vs STLC",
+      "difficulty": "Easy",
+      "question": "What is the difference between SDLC and STLC?",
+      "options": [
+        "SDLC (Software Development Life Cycle) covers the full build process from requirements to deployment; STLC (Software Testing Life Cycle) is the subset of phases focused specifically on planning and executing testing",
+        "STLC replaces SDLC entirely in Agile teams",
+        "SDLC only applies to waterfall projects",
+        "They describe the same set of phases"
+      ],
+      "correctIndex": 0,
+      "explanation": "SDLC spans the whole software lifecycle (requirements, design, build, test, deploy, maintain); STLC is the testing-focused subset (test planning, case design, execution, closure) that runs within it."
+    },
+    {
+      "id": "QZ-135",
+      "topic": "Programming Fundamentals - Variable Scope",
+      "difficulty": "Easy",
+      "question": "What is the difference between a local and a global variable?",
+      "options": [
+        "A local variable is accessible only within the block/function/method where it's declared; a global variable is accessible from anywhere in the program (or module/class, depending on the language)",
+        "Global variables are always faster to access than local ones",
+        "Local variables persist for the entire program's lifetime",
+        "There is no difference in compiled languages"
+      ],
+      "correctIndex": 0,
+      "explanation": "A local variable's scope is limited to the block or function it's declared in and is typically deallocated when that block exits, while a global variable is visible more broadly and persists for the program's duration."
+    },
+    {
+      "id": "QZ-136",
+      "topic": "Distributed Systems - Marshalling",
+      "difficulty": "Hard",
+      "question": "What does 'marshalling' mean in the context of distributed systems?",
+      "options": [
+        "Load-balancing requests across servers",
+        "Converting an object or data structure into a format (e.g. bytes, JSON, XML) that can be transmitted over a network or stored, and reconstructed later (unmarshalling)",
+        "Sorting a list before returning it from an API",
+        "Encrypting a password before storing it"
+      ],
+      "correctIndex": 1,
+      "explanation": "Marshalling serializes in-memory data into a transmittable/storable format for a remote call or persistence; the receiving side unmarshals it back into an in-memory representation."
+    },
+    {
+      "id": "QZ-137",
+      "topic": "Fintech Domain - Idempotency",
+      "difficulty": "Hard",
+      "question": "In a payments/transfers API like this workspace's internal-transfer-service, why does an idempotency key matter?",
+      "options": [
+        "It speeds up the database query for the transfer",
+        "It lets a client safely retry a request (e.g. after a timeout) without risking the transfer — and the money movement it represents — being executed twice",
+        "It is required only for GET requests",
+        "It replaces the need for authentication"
+      ],
+      "correctIndex": 1,
+      "explanation": "A client-supplied idempotency key lets the server recognize a retried request as a duplicate of one already processed and return the original result, instead of creating a second journal entry for the same intended transfer."
+    },
+    {
+      "id": "QZ-138",
+      "topic": "Fintech Domain - Double-Entry Bookkeeping",
+      "difficulty": "Medium",
+      "question": "What is the core invariant enforced by double-entry bookkeeping, as implemented in this workspace's general-ledger-service?",
+      "options": [
+        "Every account must have a positive balance at all times",
+        "Every journal entry's total debits must equal its total credits, so money is only ever moved between accounts, never created or destroyed",
+        "Every transaction must involve exactly one account",
+        "Every transaction must be reversible within 24 hours"
+      ],
+      "correctIndex": 1,
+      "explanation": "Double-entry bookkeeping requires every entry's debits to equal its credits; this workspace enforces it structurally in the JournalEntry constructor, so an unbalanced entry can't even be built."
+    },
+    {
+      "id": "QZ-139",
+      "topic": "Architecture - Database per Service",
+      "difficulty": "Medium",
+      "question": "Why does this workspace give each microservice (customer, account, ledger, transfers) its own database rather than one shared database?",
+      "options": [
+        "Shared databases are always slower",
+        "It keeps each service's data model private, so services can be deployed, scaled, or changed independently — other services only access it through its HTTP API, never its tables directly",
+        "It is required by PostgreSQL",
+        "It removes the need for any inter-service communication"
+      ],
+      "correctIndex": 1,
+      "explanation": "Database-per-service enforces that a service's internal schema stays private and changeable, since every cross-service interaction goes through its API — a shared database would couple services at the data layer."
+    },
+    {
+      "id": "QZ-140",
+      "topic": "Reliability - Circuit Breaker",
+      "difficulty": "Hard",
+      "question": "What does a circuit breaker pattern do when wrapped around a call like internal-transfer-service calling account-service?",
+      "options": [
+        "It permanently blocks all future calls to that service after any single failure",
+        "It tracks recent failures and, once a threshold is crossed, 'opens' to fail fast without calling the downstream service, giving it time to recover before periodically allowing a test call through again",
+        "It automatically retries every failed call an unlimited number of times",
+        "It encrypts the request payload"
+      ],
+      "correctIndex": 1,
+      "explanation": "A circuit breaker trips open after repeated failures, short-circuiting further calls (failing fast) instead of piling up slow/failing requests against a struggling downstream service, then probes periodically to see if it has recovered."
+    }
+  ]
+}

@@ -1,0 +1,274 @@
+{
+  "dsaProblems": [
+    {
+      "day": 1,
+      "id": "DSA-101",
+      "title": "Two Sum",
+      "difficulty": "Easy",
+      "topics": ["Array", "Hash Table"],
+      "prompt": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers such that they add up to `target`. Assume exactly one solution exists, and you may not use the same element twice. Aim for better than O(n^2) using a hash map.",
+      "example": "Input: nums = [2,7,11,15], target = 9 -> Output: [0,1] (nums[0] + nums[1] = 2 + 7 = 9)"
+    },
+    {
+      "day": 2,
+      "id": "DSA-102",
+      "title": "Valid Parentheses",
+      "difficulty": "Easy",
+      "topics": ["Stack", "String"],
+      "prompt": "Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid: every open bracket must be closed by the same type of bracket, and in the correct order.",
+      "example": "Input: s = \"()[]{}\" -> Output: true. Input: s = \"(]\" -> Output: false."
+    },
+    {
+      "day": 3,
+      "id": "DSA-103",
+      "title": "Merge Two Sorted Lists",
+      "difficulty": "Easy",
+      "topics": ["Linked List", "Recursion"],
+      "prompt": "Merge two sorted linked lists `list1` and `list2` and return the merged list as one sorted linked list, formed by splicing together the nodes of the two input lists.",
+      "example": "Input: list1 = [1,2,4], list2 = [1,3,4] -> Output: [1,1,2,3,4,4]"
+    },
+    {
+      "day": 4,
+      "id": "DSA-104",
+      "title": "Reverse Linked List",
+      "difficulty": "Easy",
+      "topics": ["Linked List"],
+      "prompt": "Given the head of a singly linked list, reverse the list in place and return the new head. Solve it both iteratively and recursively.",
+      "example": "Input: head = [1,2,3,4,5] -> Output: [5,4,3,2,1]"
+    },
+    {
+      "day": 5,
+      "id": "DSA-105",
+      "title": "Best Time to Buy and Sell Stock",
+      "difficulty": "Easy",
+      "topics": ["Array", "Dynamic Programming"],
+      "prompt": "Given an array `prices` where prices[i] is the price of a stock on day i, choose a single day to buy and a later day to sell to maximize profit. Return the maximum profit achievable, or 0 if no profit is possible.",
+      "example": "Input: prices = [7,1,5,3,6,4] -> Output: 5 (buy at 1, sell at 6)"
+    },
+    {
+      "day": 6,
+      "id": "DSA-106",
+      "title": "Ransom Note",
+      "difficulty": "Easy",
+      "topics": ["Hash Table", "String"],
+      "prompt": "Given two strings `ransomNote` and `magazine`, return true if ransomNote can be constructed by using the letters from magazine, using each letter in magazine at most once.",
+      "example": "Input: ransomNote = \"aa\", magazine = \"aab\" -> Output: true"
+    },
+    {
+      "day": 7,
+      "id": "DSA-107",
+      "title": "Search Insert Position",
+      "difficulty": "Easy",
+      "topics": ["Array", "Binary Search"],
+      "prompt": "Given a sorted array of distinct integers `nums` and a `target`, return the index if the target is found. If not, return the index where it would be inserted to keep the array sorted. Must run in O(log n).",
+      "example": "Input: nums = [1,3,5,6], target = 5 -> Output: 2. Input: nums = [1,3,5,6], target = 2 -> Output: 1."
+    },
+    {
+      "day": 8,
+      "id": "DSA-108",
+      "title": "Climbing Stairs",
+      "difficulty": "Easy",
+      "topics": ["Dynamic Programming"],
+      "prompt": "You are climbing a staircase that takes `n` steps to reach the top. Each time you can climb either 1 or 2 steps. In how many distinct ways can you climb to the top?",
+      "example": "Input: n = 3 -> Output: 3 (1+1+1, 1+2, 2+1)"
+    },
+    {
+      "day": 9,
+      "id": "DSA-109",
+      "title": "Can Place Flowers",
+      "difficulty": "Easy",
+      "topics": ["Array", "Greedy"],
+      "prompt": "Given a flowerbed array of 0s and 1s (0 = empty, 1 = planted) where no two flowers can be adjacent, and an integer `n`, return true if `n` new flowers can be planted without violating the no-adjacent-flowers rule.",
+      "example": "Input: flowerbed = [1,0,0,0,1], n = 1 -> Output: true"
+    },
+    {
+      "day": 10,
+      "id": "DSA-110",
+      "title": "Counting Bits",
+      "difficulty": "Easy",
+      "topics": ["Dynamic Programming", "Bit Manipulation"],
+      "prompt": "Given an integer `n`, return an array `ans` of length n+1 where ans[i] is the number of 1's in the binary representation of i, computed in O(n) total time using previously computed results.",
+      "example": "Input: n = 5 -> Output: [0,1,1,2,1,2]"
+    },
+    {
+      "day": 11,
+      "id": "DSA-111",
+      "title": "Group Anagrams",
+      "difficulty": "Medium",
+      "topics": ["Array", "Hash Table", "String"],
+      "prompt": "Given an array of strings `strs`, group the anagrams together. You can return the answer in any order. Two strings are anagrams if one's letters can be rearranged to form the other.",
+      "example": "Input: strs = [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"] -> Output: [[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]"
+    },
+    {
+      "day": 12,
+      "id": "DSA-112",
+      "title": "3Sum",
+      "difficulty": "Medium",
+      "topics": ["Array", "Two Pointers", "Sorting"],
+      "prompt": "Given an integer array `nums`, return all unique triplets [nums[i], nums[j], nums[k]] such that i != j != k and nums[i] + nums[j] + nums[k] == 0. The solution set must not contain duplicate triplets.",
+      "example": "Input: nums = [-1,0,1,2,-1,-4] -> Output: [[-1,-1,2],[-1,0,1]]"
+    },
+    {
+      "day": 13,
+      "id": "DSA-113",
+      "title": "Longest Substring Without Repeating Characters",
+      "difficulty": "Medium",
+      "topics": ["String", "Sliding Window", "Hash Table"],
+      "prompt": "Given a string `s`, find the length of the longest substring without repeating characters, using a sliding window in O(n) time.",
+      "example": "Input: s = \"abcabcbb\" -> Output: 3 (\"abc\")"
+    },
+    {
+      "day": 14,
+      "id": "DSA-114",
+      "title": "Merge Intervals",
+      "difficulty": "Medium",
+      "topics": ["Array", "Sorting"],
+      "prompt": "Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals and return an array of the non-overlapping intervals that cover all the intervals in the input.",
+      "example": "Input: intervals = [[1,3],[2,6],[8,10],[15,18]] -> Output: [[1,6],[8,10],[15,18]]"
+    },
+    {
+      "day": 15,
+      "id": "DSA-115",
+      "title": "Longest Palindromic Substring",
+      "difficulty": "Medium",
+      "topics": ["String", "Dynamic Programming"],
+      "prompt": "Given a string `s`, return the longest palindromic substring in s. Consider both the expand-around-center and dynamic-programming approaches and discuss their complexity.",
+      "example": "Input: s = \"babad\" -> Output: \"bab\" (or \"aba\", both valid)"
+    },
+    {
+      "day": 16,
+      "id": "DSA-116",
+      "title": "Top K Frequent Elements",
+      "difficulty": "Medium",
+      "topics": ["Hash Table", "Heap", "Sorting"],
+      "prompt": "Given an integer array `nums` and an integer `k`, return the `k` most frequent elements. You may return the answer in any order, and should aim for better than O(n log n) using bucket sort or a heap.",
+      "example": "Input: nums = [1,1,1,2,2,3], k = 2 -> Output: [1,2]"
+    },
+    {
+      "day": 17,
+      "id": "DSA-117",
+      "title": "Search a 2D Matrix",
+      "difficulty": "Medium",
+      "topics": ["Array", "Binary Search"],
+      "prompt": "Write an efficient algorithm that searches for a value `target` in an m x n integer matrix where each row is sorted left to right and the first integer of each row is greater than the last integer of the previous row. Aim for O(log(m*n)).",
+      "example": "Input: matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3 -> Output: true"
+    },
+    {
+      "day": 18,
+      "id": "DSA-118",
+      "title": "Daily Temperatures",
+      "difficulty": "Medium",
+      "topics": ["Array", "Stack", "Monotonic Stack"],
+      "prompt": "Given an array of integers `temperatures`, return an array `answer` where answer[i] is the number of days you have to wait after day i to get a warmer temperature, or 0 if there is no future day for which this is possible. Solve using a monotonic stack in O(n).",
+      "example": "Input: temperatures = [73,74,75,71,69,72,76,73] -> Output: [1,1,4,2,1,1,0,0]"
+    },
+    {
+      "day": 19,
+      "id": "DSA-119",
+      "title": "Min Stack",
+      "difficulty": "Medium",
+      "topics": ["Stack", "Design"],
+      "prompt": "Design a stack that supports push, pop, top, and retrieving the minimum element in constant time O(1) for all operations.",
+      "example": "push(-2), push(0), push(-3), getMin() -> -3, pop(), top() -> 0, getMin() -> -2"
+    },
+    {
+      "day": 20,
+      "id": "DSA-120",
+      "title": "Word Break",
+      "difficulty": "Medium",
+      "topics": ["Dynamic Programming", "String"],
+      "prompt": "Given a string `s` and a dictionary of strings `wordDict`, return true if `s` can be segmented into a space-separated sequence of one or more dictionary words. The same word may be reused multiple times.",
+      "example": "Input: s = \"leetcode\", wordDict = [\"leet\",\"code\"] -> Output: true"
+    },
+    {
+      "day": 21,
+      "id": "DSA-121",
+      "title": "House Robber II",
+      "difficulty": "Medium",
+      "topics": ["Dynamic Programming", "Array"],
+      "prompt": "Houses are arranged in a circle (first and last house are adjacent). You cannot rob two adjacent houses. Given an array of the money at each house, return the maximum amount you can rob without alerting the police.",
+      "example": "Input: nums = [2,3,2] -> Output: 3"
+    },
+    {
+      "day": 22,
+      "id": "DSA-122",
+      "title": "Longest Increasing Subsequence",
+      "difficulty": "Medium",
+      "topics": ["Dynamic Programming", "Binary Search"],
+      "prompt": "Given an integer array `nums`, return the length of the longest strictly increasing subsequence. First solve in O(n^2) with DP, then optimize to O(n log n) using patience sorting / binary search.",
+      "example": "Input: nums = [10,9,2,5,3,7,101,18] -> Output: 4 ([2,3,7,101])"
+    },
+    {
+      "day": 23,
+      "id": "DSA-123",
+      "title": "Kth Smallest Element in a BST",
+      "difficulty": "Medium",
+      "topics": ["Tree", "Binary Search Tree", "Recursion"],
+      "prompt": "Given the root of a binary search tree and an integer `k`, return the kth smallest value (1-indexed) among all the node values in the tree, using the BST's in-order traversal property.",
+      "example": "Input: root = [3,1,4,null,2], k = 1 -> Output: 1"
+    },
+    {
+      "day": 24,
+      "id": "DSA-124",
+      "title": "Binary Tree Level Order Traversal",
+      "difficulty": "Medium",
+      "topics": ["Tree", "Breadth-First Search"],
+      "prompt": "Given the root of a binary tree, return the level order traversal of its nodes' values (i.e., from left to right, level by level) as a list of lists.",
+      "example": "Input: root = [3,9,20,null,null,15,7] -> Output: [[3],[9,20],[15,7]]"
+    },
+    {
+      "day": 25,
+      "id": "DSA-125",
+      "title": "Number of Islands",
+      "difficulty": "Medium",
+      "topics": ["Graph", "Depth-First Search", "Breadth-First Search", "Matrix"],
+      "prompt": "Given an m x n 2D binary grid representing a map of '1's (land) and '0's (water), return the number of islands, where an island is surrounded by water and formed by connecting adjacent lands horizontally or vertically.",
+      "example": "Input: grid = [[\"1\",\"1\",\"0\"],[\"1\",\"0\",\"0\"],[\"0\",\"0\",\"1\"]] -> Output: 2"
+    },
+    {
+      "day": 26,
+      "id": "DSA-126",
+      "title": "Course Schedule",
+      "difficulty": "Medium",
+      "topics": ["Graph", "Topological Sort", "Depth-First Search"],
+      "prompt": "There are `numCourses` courses labeled 0 to numCourses-1. Given an array `prerequisites` where prerequisites[i] = [a, b] means you must take course b before course a, return true if it is possible to finish all courses (i.e., the prerequisite graph has no cycle).",
+      "example": "Input: numCourses = 2, prerequisites = [[1,0]] -> Output: true. Input: prerequisites = [[1,0],[0,1]] -> Output: false."
+    },
+    {
+      "day": 27,
+      "id": "DSA-127",
+      "title": "4Sum",
+      "difficulty": "Medium",
+      "topics": ["Array", "Two Pointers", "Sorting"],
+      "prompt": "Given an array `nums` of n integers and an integer `target`, return all unique quadruplets [nums[a], nums[b], nums[c], nums[d]] such that they sum to target, with no duplicate quadruplets in the result.",
+      "example": "Input: nums = [1,0,-1,0,-2,2], target = 0 -> Output: [[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]"
+    },
+    {
+      "day": 28,
+      "id": "DSA-128",
+      "title": "LRU Cache",
+      "difficulty": "Medium",
+      "topics": ["Design", "Hash Table", "Linked List"],
+      "prompt": "Design a Least Recently Used (LRU) cache with a fixed capacity supporting get(key) and put(key, value), both in O(1) average time. When the cache exceeds capacity, evict the least recently used item.",
+      "example": "capacity = 2; put(1,1); put(2,2); get(1) -> 1; put(3,3) evicts key 2; get(2) -> -1 (not found)"
+    },
+    {
+      "day": 29,
+      "id": "DSA-129",
+      "title": "Median of Two Sorted Arrays",
+      "difficulty": "Hard",
+      "topics": ["Array", "Binary Search", "Divide and Conquer"],
+      "prompt": "Given two sorted arrays `nums1` and `nums2` of size m and n, return the median of the two sorted arrays combined. The overall run time complexity should be O(log(m+n)).",
+      "example": "Input: nums1 = [1,3], nums2 = [2] -> Output: 2.0. Input: nums1 = [1,2], nums2 = [3,4] -> Output: 2.5."
+    },
+    {
+      "day": 30,
+      "id": "DSA-130",
+      "title": "Trapping Rain Water",
+      "difficulty": "Hard",
+      "topics": ["Array", "Two Pointers", "Dynamic Programming", "Stack"],
+      "prompt": "Given `n` non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining, ideally in O(n) time and O(1) extra space using the two-pointer technique.",
+      "example": "Input: height = [0,1,0,2,1,0,1,3,2,1,2,1] -> Output: 6"
+    }
+  ]
+}

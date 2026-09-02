@@ -1,0 +1,27 @@
+name: CD - staging
+
+# Auto-promotes whatever just deployed cleanly to dev -- staging never
+# builds from a different commit than the dev deploy it followed.
+on:
+  workflow_run:
+    workflows: ["CD - dev"]
+    types: [completed]
+
+concurrency:
+  group: cd-staging
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event.workflow_run.conclusion == 'success'
+    uses: ./.github/workflows/build.yml
+    with:
+      image_tag: staging-${{ github.event.workflow_run.head_sha }}
+      vite_api_base_url: https://api.staging.banking.fintech.example.com
+
+  deploy:
+    needs: build
+    uses: ./.github/workflows/deploy-staging.yml
+    with:
+      image_tag: staging-${{ github.event.workflow_run.head_sha }}
+    secrets: inherit

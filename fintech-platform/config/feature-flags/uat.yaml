@@ -1,0 +1,27 @@
+# Feature flags for uat. Booleans here describe intent for what's built in
+# this repo, not a flag service read at runtime -- see
+# docs/architecture/vertical-slice.md for what's actually implemented vs.
+# still scaffolding.
+
+flags:
+  # -- Implemented in the vertical slice; on everywhere. --
+  customer-onboarding: true
+  account-opening: true
+  internal-transfers: true
+  ledger-double-entry-enforcement: true  # core correctness invariant, never disable
+
+  # -- Not implemented yet (services are still empty scaffolding). Keep false
+  #    until the corresponding service/domain is built; flipping these on
+  #    today would just 404 through the gateway. --
+  cards: false
+  loans: false
+  investments: false
+  wire-transfers: false          # only internal-transfer-service exists so far
+  multi-currency-transfers: false  # internal-transfer-service rejects cross-currency by design
+  fraud-detection: false
+  notifications: false
+
+  # -- Vary by environment. --
+  verbose-error-responses: false
+  allow-test-data-seeding: false
+  maintenance-mode: false

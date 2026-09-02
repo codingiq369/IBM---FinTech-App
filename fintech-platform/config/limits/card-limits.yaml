@@ -1,0 +1,27 @@
+# Limits for services/cards, which does not exist yet -- still empty
+# scaffolding (see the root README's "Everything else" section). Placeholder
+# so the shape of per-environment card limits is decided before the service
+# is built, not invented ad hoc then.
+default:
+  currency: USD
+  daily_pos_limit: 5000.00
+  daily_atm_limit: 1000.00
+  daily_purchase_count: 30
+
+environments:
+  dev:
+    daily_pos_limit: 1000000.00
+    daily_atm_limit: 1000000.00
+    daily_purchase_count: 1000
+  staging:
+    daily_pos_limit: 50000.00
+    daily_atm_limit: 10000.00
+    daily_purchase_count: 100
+  uat:
+    daily_pos_limit: 5000.00
+    daily_atm_limit: 1000.00
+    daily_purchase_count: 30
+  production:
+    daily_pos_limit: 5000.00
+    daily_atm_limit: 1000.00
+    daily_purchase_count: 30

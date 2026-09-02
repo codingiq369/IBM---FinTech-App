@@ -1,0 +1,26 @@
+# Environment profile: uat
+# Activated via SPRING_PROFILES_ACTIVE=uat (see environments/uat/.env).
+
+logging:
+  level:
+    root: WARN
+    com.fintechplatform: INFO
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowedOriginPatterns: "${ALLOWED_ORIGIN:https://uat.banking.fintech.example.com}"

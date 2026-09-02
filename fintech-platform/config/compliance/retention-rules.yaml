@@ -1,0 +1,20 @@
+# Data retention. Not implemented anywhere in the current vertical slice --
+# no service deletes or archives rows; Postgres data lives in the
+# docker-compose volume (or, on a cluster, the RDS instance) indefinitely.
+# See docs/compliance/data-retention.md for the target policy this should
+# implement.
+default_retention_years: 7   # typical regulatory minimum for financial transaction records
+
+environments:
+  dev:
+    retention_years: 0.08   # ~30 days; dev data is disposable
+    hard_delete_on_environment_reset: true
+  staging:
+    retention_years: 0.25   # ~90 days
+    hard_delete_on_environment_reset: true
+  uat:
+    retention_years: 1
+    hard_delete_on_environment_reset: false
+  production:
+    retention_years: 7
+    hard_delete_on_environment_reset: false

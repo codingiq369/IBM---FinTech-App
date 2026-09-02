@@ -1,0 +1,6 @@
+# Enforced by .github/workflows/dependency-scan.yml (npm audit / OWASP
+# dependency-check). One policy for every environment -- a vulnerable
+# dependency is equally a problem regardless of where it's deployed; only
+# the *image* severity policy in security-gate.yml varies by environment.
+max_severity_allowed: HIGH
+fail_on_outdated_major_versions: false

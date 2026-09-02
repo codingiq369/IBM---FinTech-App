@@ -1,0 +1,20 @@
+# Overrides on top of defaults.yaml for dev.
+# Matches SPRING_PROFILES_ACTIVE=dev (application-dev.yml in each service)
+# and apps/web-banking/.env.development.
+
+logging:
+  level: DEBUG
+
+observability:
+  tracing_sample_rate: 1.0
+
+http:
+  cors_allowed_origins: ["http://localhost:3000", "http://localhost:5173"]
+
+database:
+  connection_pool:
+    max_size: 5
+    min_idle: 1
+
+resilience:
+  circuit_breaker_enabled: false

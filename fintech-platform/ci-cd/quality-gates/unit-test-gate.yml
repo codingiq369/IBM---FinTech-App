@@ -1,0 +1,6 @@
+# Enforced by .github/workflows/unit-tests.yml (called from
+# pull-request.yml, which every cd-<env>.yml deploy implicitly depends on
+# having passed on main). Every environment requires every unit test to
+# pass -- only coverage-gate.yml's bar varies by environment.
+required: true
+allow_skipped_tests: false
