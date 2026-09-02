@@ -7,3 +7,5 @@ CREATE DATABASE customer_db;
 CREATE DATABASE accounts_db;
 CREATE DATABASE ledger_db;
 CREATE DATABASE transfers_db;
+CREATE DATABASE card_management_db;
+CREATE DATABASE card_authorization_db;

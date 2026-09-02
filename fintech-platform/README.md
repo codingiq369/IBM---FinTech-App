@@ -5,15 +5,15 @@ core banking, payments, lending, trading, fraud, and more, plus the
 supporting data, ML, security, and infrastructure layers a real bank needs.
 
 Most of this repository is a **scaffold** — the folder structure a platform
-like this would eventually have, with the code still to be written. One
-path through it has been built out completely and is runnable today:
+like this would eventually have, with the code still to be written. Two
+real, runnable paths have been built through it so far:
 
-## What's implemented: onboarding → open account → transfer
+## What's implemented
+
+### Slice 1: onboarding → open account → transfer
 
 A customer can be onboarded, open a bank account, and transfer money to
 another account, with every balance backed by a real double-entry ledger.
-Five services, one Postgres instance (one database per service), and a
-small React browser UI:
 
 - `services/customer/customer-service` — customer identity and KYC status
 - `services/accounts/account-service` — opens and tracks bank accounts
@@ -21,12 +21,30 @@ small React browser UI:
   debit has a matching credit
 - `services/transfers/internal-transfer-service` — orchestrates moving
   money between two accounts
+
+### Slice 2: issue a debit card → authorize a purchase
+
+Built on top of slice 1 without changing it: a customer with an account
+can be issued a debit card and use it to make a purchase, approved or
+declined in real time against the same ledger. See
+[`docs/product/prd-card-issuance-and-authorization.md`](docs/product/prd-card-issuance-and-authorization.md)
+for why, and [ADR-0010](docs/architecture/architecture-decisions/ADR-0010-card-network-clearing-account.md)
+for the one new architectural decision it needed.
+
+- `services/cards/card-management-service` — issues cards, tracks
+  ISSUED/ACTIVE/BLOCKED status
+- `services/cards/card-authorization-service` — checks the card and its
+  daily limit, then posts the purchase to the ledger
+
+### Shared by both slices
+
 - `gateways/api-gateway` — single entry point + CORS for the browser UI
-- `apps/web-banking` — Vite + React + TypeScript demo UI
+- `apps/web-banking` — Vite + React + TypeScript demo UI, seven services,
+  one Postgres instance (one database per service)
 
 Read [`docs/architecture/vertical-slice.md`](docs/architecture/vertical-slice.md)
-for how it fits together, a sequence diagram of the transfer flow, and what
-was simplified on purpose.
+for how both fit together, sequence diagrams for the transfer and card
+authorization flows, and what was simplified on purpose.
 
 ### Running it
 
@@ -38,7 +56,7 @@ docker compose up --build
 ```
 
 Then open **http://localhost:3000**. First boot takes a minute or two while
-five JVMs start and run their database migrations, and the frontend builds —
+seven JVMs start and run their database migrations, and the frontend builds —
 if the page says it can't reach the API gateway, or an early transfer fails
 with an "upstream service unreachable" error, wait a bit and retry.
 
@@ -79,6 +97,8 @@ cd services/customer/customer-service && mvn test
 cd services/accounts/account-service && mvn test
 cd services/transfers/internal-transfer-service && mvn test
 cd ledger/general-ledger-service && mvn test
+cd services/cards/card-management-service && mvn test
+cd services/cards/card-authorization-service && mvn test
 cd gateways/api-gateway && mvn test
 cd apps/web-banking && npm test
 ```
@@ -88,26 +108,32 @@ The most important test in the repository is
 it proves the ledger cannot construct an unbalanced journal entry, no
 matter what a caller sends it.
 
-> **Note on this build:** the backend Java services were written in an
-> environment without access to Maven Central, so they could not be
-> compiled or test-run before being handed off — they're written carefully
-> and reviewed by hand, but run `mvn clean verify` (or `docker compose
-> build`) yourself as a first step and treat any compiler error you hit as
-> a real bug report. The frontend, by contrast, *was* built, installed,
-> and tested in that same environment (npm's registry wasn't blocked the
-> way Maven Central was), so `apps/web-banking` should build clean as-is.
+> **Note on this build:** the backend Java services — including
+> `card-management-service` and `card-authorization-service` — were
+> written in an environment without access to Maven Central, so they
+> could not be compiled or test-run before being handed off — they're
+> written carefully and reviewed by hand, but run `mvn clean verify` (or
+> `docker compose build`) yourself as a first step and treat any compiler
+> error you hit as a real bug report. The frontend, by contrast, *was*
+> built, installed, linted, and tested in an environment with registry
+> access (npm's registry wasn't blocked the way Maven Central was) —
+> including the new Cards page — so `apps/web-banking` should build,
+> lint, and test clean as-is.
 
 ## Everything else
 
-The rest of the top-level folders (`services/cards`, `services/lending`,
+The rest of the top-level folders (`services/lending`, `services/trading`,
 `ml-platform`, `data-platform`, `security`, and so on), plus the sibling
 microservice folders next to the ones implemented here (e.g.
 `services/accounts/account-opening-service`,
-`services/transfers/wire-transfer-service`) and the unused pages in
-`apps/web-banking/src/pages` (cards, loans, investments, etc.) are still
-empty scaffolding — placeholders for where that code will live. See
+`services/transfers/wire-transfer-service`,
+`services/cards/card-dispute-service`) and the unused pages in
+`apps/web-banking/src/pages` (loans, investments, etc.) are still empty
+scaffolding — placeholders for where that code will live. See
 `docs/architecture/vertical-slice.md`'s "What to build next" section for a
-suggested order to keep extending this.
+suggested order to keep extending this, and
+`docs/product/card-issuance-backlog.md` for what's specifically left
+within the cards domain.
 
 `infrastructure` is a partial exception: the Terraform and Kubernetes
 needed to run *this* vertical slice across dev/staging/uat/production is

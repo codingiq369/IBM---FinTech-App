@@ -4,4 +4,5 @@ export const ROUTES = {
   accounts: '/accounts',
   payments: '/payments',
   transactions: '/transactions',
+  cards: '/cards',
 } as const

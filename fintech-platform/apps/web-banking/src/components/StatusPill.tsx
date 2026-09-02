@@ -1,5 +1,5 @@
 const POSITIVE = new Set(['ACTIVE', 'APPROVED', 'COMPLETED', 'UP'])
-const NEGATIVE = new Set(['CLOSED', 'REJECTED', 'FAILED', 'DOWN'])
+const NEGATIVE = new Set(['CLOSED', 'REJECTED', 'FAILED', 'DOWN', 'BLOCKED', 'DECLINED'])
 
 /** Colors any of our backend status strings consistently, without needing
  * to know every possible value up front — anything not explicitly positive

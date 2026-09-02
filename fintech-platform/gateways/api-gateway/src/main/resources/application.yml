@@ -23,6 +23,14 @@ spring:
           uri: ${TRANSFERS_SERVICE_URL:http://localhost:8084}
           predicates:
             - Path=/api/transfers/**
+        - id: card-management-service
+          uri: ${CARD_MANAGEMENT_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/cards/**
+        - id: card-authorization-service
+          uri: ${CARD_AUTHORIZATION_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/card-authorizations/**
       globalcors:
         cors-configurations:
           "[/**]":

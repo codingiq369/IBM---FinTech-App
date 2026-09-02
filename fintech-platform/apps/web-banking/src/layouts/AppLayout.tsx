@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: ROUTES.accounts, label: 'Accounts' },
   { to: ROUTES.payments, label: 'Transfer money' },
   { to: ROUTES.transactions, label: 'Transaction history' },
+  { to: ROUTES.cards, label: 'Cards' },
 ]
 
 export function AppLayout() {
@@ -17,8 +18,8 @@ export function AppLayout() {
       <header className="app-header">
         <h1>FinTech Platform</h1>
         <p className="subtitle">
-          Web banking demo — walks the full vertical slice: onboard a customer, open an account, transfer
-          money, watch the ledger keep it honest.
+          Web banking demo — walks both vertical slices: onboard a customer, open an account, transfer money,
+          issue a debit card, and authorize a purchase, all backed by one honest ledger.
         </p>
         <GatewayStatusBanner />
         <nav className="app-nav">
