@@ -1,0 +1,9 @@
+# Managed by Kustomize. Base is environment-agnostic; overlays/<env>/patches/ supplies replicas, resources, image tags, and env-specific config.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress

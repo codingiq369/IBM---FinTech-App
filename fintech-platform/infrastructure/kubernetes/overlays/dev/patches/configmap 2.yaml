@@ -1,0 +1,10 @@
+# Managed by Kustomize.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fintech-config
+data:
+  SPRING_PROFILES_ACTIVE: "dev"
+  DB_HOST: "fintech-dev.REPLACE.rds.amazonaws.com"
+  DB_PORT: "5432"
+  ALLOWED_ORIGIN: "https://dev.banking.fintech.example.com"

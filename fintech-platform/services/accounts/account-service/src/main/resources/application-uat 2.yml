@@ -1,0 +1,29 @@
+# Environment profile: uat
+# Activated via SPRING_PROFILES_ACTIVE=uat (see environments/uat/.env).
+# Sized and configured to look like production so sign-off testing is
+# representative; the only intended differences from production are scale
+# and the data in the database.
+
+logging:
+  level:
+    root: WARN
+    com.fintechplatform: INFO
+
+spring:
+  jpa:
+    show-sql: false
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

@@ -1,0 +1,41 @@
+name: Unit tests
+
+on:
+  workflow_call:
+
+jobs:
+  backend:
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - services/customer/customer-service
+          - services/accounts/account-service
+          - ledger/general-ledger-service
+          - services/transfers/internal-transfer-service
+          - gateways/api-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: mvn test
+        working-directory: ${{ matrix.service }}
+        run: mvn -B test
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/web-banking/package-lock.json
+      - working-directory: apps/web-banking
+        run: npm ci
+      - working-directory: apps/web-banking
+        run: npm test

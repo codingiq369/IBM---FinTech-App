@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: ROUTES.payments, label: 'Transfer money' },
   { to: ROUTES.transactions, label: 'Transaction history' },
   { to: ROUTES.cards, label: 'Cards' },
+  { to: ROUTES.notifications, label: 'Activity' },
 ]
 
 export function AppLayout() {
@@ -19,7 +20,8 @@ export function AppLayout() {
         <h1>FinTech Platform</h1>
         <p className="subtitle">
           Web banking demo — walks both vertical slices: onboard a customer, open an account, transfer money,
-          issue a debit card, and authorize a purchase, all backed by one honest ledger.
+          issue a debit card, and authorize a purchase, all backed by one honest ledger, with a Kafka-driven
+          Activity feed picking up every completed transfer and approved purchase in near real time.
         </p>
         <GatewayStatusBanner />
         <nav className="app-nav">

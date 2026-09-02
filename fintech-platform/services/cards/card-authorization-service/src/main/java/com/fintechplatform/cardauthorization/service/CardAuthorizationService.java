@@ -7,6 +7,7 @@ import com.fintechplatform.cardauthorization.client.CardResponse;
 import com.fintechplatform.cardauthorization.domain.CardAuthorization;
 import com.fintechplatform.cardauthorization.domain.CardAuthorizationStatus;
 import com.fintechplatform.cardauthorization.dto.AuthorizePurchaseRequest;
+import com.fintechplatform.cardauthorization.event.CardAuthorizationEventPublisher;
 import com.fintechplatform.cardauthorization.repository.CardAuthorizationRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -23,18 +24,21 @@ public class CardAuthorizationService {
     private final AccountsClient accountsClient;
     private final ClearingAccountService clearingAccountService;
     private final CardAuthorizationExecutionService executionService;
+    private final CardAuthorizationEventPublisher eventPublisher;
 
     public CardAuthorizationService(
             CardAuthorizationRepository cardAuthorizationRepository,
             CardManagementClient cardManagementClient,
             AccountsClient accountsClient,
             ClearingAccountService clearingAccountService,
-            CardAuthorizationExecutionService executionService) {
+            CardAuthorizationExecutionService executionService,
+            CardAuthorizationEventPublisher eventPublisher) {
         this.cardAuthorizationRepository = cardAuthorizationRepository;
         this.cardManagementClient = cardManagementClient;
         this.accountsClient = accountsClient;
         this.clearingAccountService = clearingAccountService;
         this.executionService = executionService;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -54,7 +58,11 @@ public class CardAuthorizationService {
      *       which makes the final APPROVED/DECLINED call (e.g. insufficient
      *       funds) and posts the balanced journal entry when it approves.
      *       This ordering matters: a card that's blocked or over its limit
-     *       never even reaches the ledger.</li>
+     *       never even reaches the ledger. Only an APPROVED outcome is
+     *       published as a {@code CardAuthorizationApproved} event via
+     *       {@link CardAuthorizationEventPublisher} — a DECLINED purchase
+     *       is a successfully recorded API response, not something
+     *       downstream consumers need to react to.</li>
      * </ol>
      * This is a simplified stand-in for a real issuer's authorization
      * engine (which would also run fraud scoring, velocity checks, and a
@@ -92,7 +100,11 @@ public class CardAuthorizationService {
         CardAuthorization authorization =
                 CardAuthorization.pendingLedgerDecision(card.id(), card.accountId(), request.merchantName(), request.amount(), currency);
 
-        return executionService.execute(authorization, account.ledgerAccountId(), clearingLedgerAccountId);
+        CardAuthorization result = executionService.execute(authorization, account.ledgerAccountId(), clearingLedgerAccountId);
+        if (result.getStatus() == CardAuthorizationStatus.APPROVED) {
+            eventPublisher.publishCardAuthorizationApproved(result);
+        }
+        return result;
     }
 
     public CardAuthorization getById(UUID id) {

@@ -1,0 +1,15 @@
+# Managed by Kustomize. Base is environment-agnostic; overlays/<env>/patches/ supplies replicas, resources, image tags, and env-specific config.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-service
+  labels:
+    app: ledger-service
+spec:
+  selector:
+    app: ledger-service
+  ports:
+    - name: http
+      port: 8083
+      targetPort: 8083
+  type: ClusterIP

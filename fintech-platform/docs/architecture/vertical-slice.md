@@ -2,7 +2,7 @@
 
 This document explains the working, end-to-end paths built through the
 fintech-platform scaffold, why they're shaped the way they are, and what's
-deliberately left as a stub for later. There are now two: the original
+deliberately left as a stub for later. There are two: the original
 money-movement slice (customer → account → ledger → transfer), and a
 second one built on top of it (a debit card → real-time purchase
 authorization → the same ledger). See
@@ -10,6 +10,15 @@ authorization → the same ledger). See
 for why the second slice exists and
 [ADR-0010](architecture-decisions/ADR-0010-card-network-clearing-account.md)
 for its one new architectural decision.
+
+A third piece sits on top of both, but isn't a third *slice* in the same
+sense — it's platform infrastructure, not a new customer-facing domain:
+both slices' completion events (`TransferCompleted`,
+`CardAuthorizationApproved`) now publish to Kafka, consumed by a new
+`notification-orchestrator` service. See
+[`docs/architecture/event-driven-architecture.md`](event-driven-architecture.md)
+for how it works and
+[ADR-0003](architecture-decisions/ADR-0003-event-bus.md) for why.
 
 ## Why a vertical slice, not everything at once
 
@@ -37,8 +46,9 @@ template you extend the same way for the next slice — a new product
 | `internal-transfer-service` | `services/transfers/internal-transfer-service` | Orchestrates moving money between two accounts; owns the transfer lifecycle. |
 | `card-management-service` | `services/cards/card-management-service` | Issues debit cards against an account and tracks their lifecycle (ISSUED/ACTIVE/BLOCKED). |
 | `card-authorization-service` | `services/cards/card-authorization-service` | Real-time purchase authorization: card status + daily limit checks, then a balanced ledger posting. |
-| `api-gateway` | `gateways/api-gateway` | Single entry point + CORS for the demo UI; routes to all six services above. |
-| `web-banking` | `apps/web-banking` | Vite + React + TypeScript demo UI exercising both flows in a browser. |
+| `notification-orchestrator` | `services/notifications/notification-orchestrator` | Consumes both slices' completion events off Kafka and records them for an activity feed — see below. |
+| `api-gateway` | `gateways/api-gateway` | Single entry point + CORS for the demo UI; routes to all seven services above. |
+| `web-banking` | `apps/web-banking` | Vite + React + TypeScript demo UI exercising both flows, plus the activity feed, in a browser. |
 
 Note both slices consolidate what the fuller scaffold names as several
 separate microservices into one each — e.g. `account-service` here also
@@ -49,11 +59,15 @@ internal) actually built, `card-management-service` consolidates
 `card-issuance-service` and `card-activation-service`, and
 `card-authorization-service` consolidates `card-authorization-service`
 and `card-transaction-service` (the scaffold's own names — this repo's
-`card-authorization-service` folder is the built one). Every other folder
-in the scaffold (lending, trading, the ML platform, Kubernetes manifests,
-Terraform, the other ledger sub-services, the other accounts/transfers/cards
-microservices, etc.) is untouched — still just the empty directory
-structure it started as.
+`card-authorization-service` folder is the built one).
+`notification-orchestrator` is the exception: it's the one service under
+`services/notifications/` this platform has built, and it's not a
+consolidation of several scaffolded names — the scaffold only ever named
+one service in that category. Every other folder in the scaffold (lending,
+trading, the ML platform, Kubernetes manifests, Terraform, the other
+ledger sub-services, the other accounts/transfers/cards microservices,
+etc.) is untouched — still just the empty directory structure it started
+as.
 
 ## Service boundaries and why they're drawn here
 
@@ -66,6 +80,7 @@ graph LR
     GW --> XFER[internal-transfer-service]
     GW --> CARDMGMT[card-management-service]
     GW --> CARDAUTH[card-authorization-service]
+    GW --> NOTIF[notification-orchestrator]
     ACC --> CUST
     ACC --> LED
     XFER --> ACC
@@ -74,6 +89,9 @@ graph LR
     CARDAUTH --> CARDMGMT
     CARDAUTH --> ACC
     CARDAUTH --> LED
+    XFER -.->|TransferCompleted| KAFKA[(transaction-events)]
+    CARDAUTH -.->|CardAuthorizationApproved| KAFKA
+    KAFKA -.-> NOTIF
 
     CUST -.-> CUSTDB[(customer_db)]
     ACC -.-> ACCDB[(accounts_db)]
@@ -81,6 +99,7 @@ graph LR
     XFER -.-> XFERDB[(transfers_db)]
     CARDMGMT -.-> CARDMGMTDB[(card_management_db)]
     CARDAUTH -.-> CARDAUTHDB[(card_authorization_db)]
+    NOTIF -.-> NOTIFDB[(notifications_db)]
 ```
 
 Each service owns one database — no service reads another's tables
@@ -90,7 +109,13 @@ also why every cross-service call in this codebase goes through a small
 `*Client` class wrapping a `RestClient`, never a shared JPA entity.
 `card-management-service` and `card-authorization-service` follow the
 identical pattern the first slice established — neither one was given
-special-case plumbing to fit in.
+special-case plumbing to fit in. `notification-orchestrator` is the one
+exception to "every cross-service call is a `*Client` wrapping a
+`RestClient`": it never calls another service's HTTP API at all, and
+nothing calls its API either except read-only GETs from the browser — its
+only inbound integration point is the Kafka topic. See
+[`docs/architecture/event-driven-architecture.md`](event-driven-architecture.md)
+for that flow specifically.
 
 `general-ledger-service` never calls out to any other service. It's the one place
 double-entry bookkeeping is enforced, and it stays reusable across any
@@ -185,6 +210,39 @@ status, then a daily limit) evaluated *before* the ledger is ever
 consulted, closer to how a real card network's authorization stack is
 layered.
 
+## The event-driven notifications flow end-to-end
+
+```mermaid
+sequenceDiagram
+    participant X as internal-transfer-service
+    participant CA as card-authorization-service
+    participant K as Kafka (transaction-events)
+    participant N as notification-orchestrator
+    participant UI as web-banking (Activity page)
+
+    Note over X: Transfer already saved COMPLETED<br/>(see flow above)
+    X-->>K: publish TransferCompleted (best-effort, async)
+    Note over CA: CardAuthorization already saved APPROVED<br/>(see flow above)
+    CA-->>K: publish CardAuthorizationApproved (best-effort, async)
+    K->>N: deliver event (at-least-once)
+    N->>N: parse, dedupe by eventId,<br/>save NotificationRecord
+    loop every 5s
+        UI->>N: GET /api/notifications
+        N-->>UI: recent notifications
+    end
+```
+
+Notice this diagram has no `alt`/`else` branch the way the two flows above
+do — there's no failure path drawn from the publish step back into either
+publishing service, because there structurally isn't one. `X-->>K` and
+`CA-->>K` are dashed arrows on purpose: whatever happens after that call
+(Kafka slow, unreachable, or the message simply never arriving) has zero
+effect on the `TransferResponse` / `CardAuthorizationResponse` already
+returned to the caller. See
+[`docs/architecture/event-driven-architecture.md`](event-driven-architecture.md)
+and [ADR-0003](architecture-decisions/ADR-0003-event-bus.md) for the full
+mechanics and the guarantees this deliberately does and doesn't make.
+
 ## The frontend
 
 `apps/web-banking` already had empty Vite + React + TypeScript scaffolding
@@ -197,24 +255,31 @@ built to fit that shape:
 | `src/api` | Raw HTTP wrappers, one file per backend service, plus the shared `apiRequest`/`ApiError` client. |
 | `src/services` | Composition logic that doesn't need React (e.g. `accountService.fetchAccountsWithBalances` fans out "list accounts" + "get balance per account" into one call). |
 | `src/stores` | Two React Contexts: `DirectoryContext` (the local, browser-only memory of which customers/accounts you've created — never a cache of server truth) and `ToastContext`. |
-| `src/pages/{dashboard,profile,accounts,payments,transactions,cards}` | The six pages these two slices implement. `profile` doubles as "onboard a customer / switch active customer" since the scaffold has no dedicated onboarding page. `payments` hosts the transfer form; `transactions` hosts transfer history; `cards` hosts card issuance/activation/blocking and a "simulate a purchase" form with its own authorization history table — there's no backend service behind the `payments`/`transactions` names, they're just the closest fit in the existing page list, while `cards` genuinely matches the two new backend services. |
+| `src/pages/{dashboard,profile,accounts,payments,transactions,cards}` | The six pages the scaffold already named that these two slices implement. `profile` doubles as "onboard a customer / switch active customer" since the scaffold has no dedicated onboarding page. `payments` hosts the transfer form; `transactions` hosts transfer history; `cards` hosts card issuance/activation/blocking and a "simulate a purchase" form with its own authorization history table — there's no backend service behind the `payments`/`transactions` names, they're just the closest fit in the existing page list, while `cards` genuinely matches the two new backend services. |
+| `src/pages/notifications` | The Activity page — the one page in this app with **no** matching scaffold placeholder folder, because the original page scaffold never named "notifications." Net-new, polling `GET /api/notifications` every 5 seconds; not scoped to the current customer (see `docs/domains/notifications.md`). |
 | `src/pages/{investments,loans,security,statements,support}` | Untouched — still just their placeholder `README.md`. |
 | `src/tests/unit` | Vitest + React Testing Library tests for the format utils, `StatusPill`, `DirectoryContext`, and the HTTP client's error handling. |
 
 Unlike the backend, this app was actually built, linted, and tested in the
 environment that produced it (`npm run build`, `npm run lint`, `npm test`
-all pass, `cards` page included) — see the README's note on why the same
-isn't true of the Java services.
+all pass, `cards` and `notifications` pages included) — see the README's
+note on why the same isn't true of the Java services.
 
 ## Simplifications made on purpose (and what real would look like)
 
-- **REST instead of async messaging.** Every inter-service call here is a
-  synchronous HTTP request. A production system would likely use the
-  `messaging/kafka` piece of this scaffold for at least the
-  transfer-completed event, so other services (notifications, fraud,
-  reporting) can react without internal-transfer-service knowing they exist. This
-  slice keeps it synchronous so the whole flow is easy to trace in one
-  request.
+- **REST for every decision-making call; Kafka only for the "it happened"
+  announcement afterward.** Every call that needs an answer before it can
+  respond to its own caller (accounts-service, ledger-service,
+  card-management-service) is still synchronous HTTP — that hasn't
+  changed. What's new: `internal-transfer-service` and
+  `card-authorization-service` each publish one event to Kafka's
+  `transaction-events` topic *after* their decision is already made and
+  committed, so a consumer (`notification-orchestrator` today; fraud
+  scoring or reporting could be next) can react without either publishing
+  service knowing or caring who's listening. See
+  `docs/architecture/event-driven-architecture.md` and ADR-0003 for the
+  full mechanics — this is deliberately the smallest possible step into
+  that pattern, not a wholesale migration to async messaging.
 - **No saga/outbox pattern.** `internal-transfer-service` calling `general-ledger-service`
   and updating its own status afterward is a simplified stand-in for the
   real distributed-transaction problem. If the process crashed between
@@ -258,7 +323,7 @@ See the root `README.md` for the quickstart. In short:
 
 ## What to build next
 
-The original four-item list here has one item done. If you want to keep
+The original four-item list here has two items done. If you want to keep
 extending these slices, in roughly increasing order of effort:
 
 1. ~~Add `services/cards` or `services/lending` following the same
@@ -278,13 +343,20 @@ extending these slices, in roughly increasing order of effort:
    it depends on, its own Flyway migrations. A natural third slice, and
    the one that would finally give the `CardType.CREDIT` case somewhere
    real to plug into (a credit line, a repayment relationship).
-4. **Publish a `TransferCompleted` and a `CardAuthorizationApproved` event**
+4. ~~Publish a `TransferCompleted` and a `CardAuthorizationApproved` event
    to `messaging/kafka` and have a new, tiny `services/notifications`
-   consumer log them — the smallest possible taste of event-driven
-   architecture before committing to it everywhere.
+   consumer log them.~~ **Done** — `notification-orchestrator`; see
+   `docs/architecture/event-driven-architecture.md`, ADR-0003, and
+   `docs/product/notifications-backlog.md` for what's still open (real
+   delivery channels, a transactional outbox, a second consumer, per-topic
+   splitting).
 5. **Add authentication** at `gateways/api-gateway` so the demo UI has to
-   log in, and pass a validated identity down to every service, cards
-   included.
+   log in, and pass a validated identity down to every service, cards and
+   notification-orchestrator included.
+6. **A second `transaction-events` consumer** — fraud scoring or
+   reporting, per the notifications PRD's own motivating examples — is now
+   the cheapest way to prove the event bus generalizes beyond one
+   consumer, since it needs no change to either publisher.
 
 None of the items above need new environment plumbing to land in --
 dev/staging/uat/production are already wired up (Spring profiles, Docker

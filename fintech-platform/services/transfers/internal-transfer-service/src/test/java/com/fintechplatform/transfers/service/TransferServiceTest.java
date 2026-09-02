@@ -11,6 +11,7 @@ import com.fintechplatform.transfers.client.AccountResponse;
 import com.fintechplatform.transfers.client.AccountsClient;
 import com.fintechplatform.transfers.domain.Transfer;
 import com.fintechplatform.transfers.dto.InitiateTransferRequest;
+import com.fintechplatform.transfers.event.TransferEventPublisher;
 import com.fintechplatform.transfers.repository.TransferRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -32,9 +33,12 @@ class TransferServiceTest {
     @Mock
     private TransferExecutionService transferExecutionService;
 
+    @Mock
+    private TransferEventPublisher transferEventPublisher;
+
     @Test
     void transferringToYourselfIsRejectedBeforeAnyAccountLookup() {
-        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService);
+        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService, transferEventPublisher);
         UUID accountId = UUID.randomUUID();
 
         assertThatThrownBy(() -> service.initiateTransfer(new InitiateTransferRequest(accountId, accountId, new BigDecimal("10.00"), null)))
@@ -45,7 +49,7 @@ class TransferServiceTest {
 
     @Test
     void mismatchedCurrenciesAreRejectedBeforeAnyTransferIsSaved() {
-        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService);
+        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService, transferEventPublisher);
         UUID sourceId = UUID.randomUUID();
         UUID destinationId = UUID.randomUUID();
 
@@ -61,7 +65,7 @@ class TransferServiceTest {
 
     @Test
     void aClosedDestinationAccountIsRejected() {
-        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService);
+        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService, transferEventPublisher);
         UUID sourceId = UUID.randomUUID();
         UUID destinationId = UUID.randomUUID();
 
@@ -75,7 +79,7 @@ class TransferServiceTest {
 
     @Test
     void aValidTransferIsSavedAsPendingThenHandedToExecution() {
-        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService);
+        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService, transferEventPublisher);
         UUID sourceId = UUID.randomUUID();
         UUID destinationId = UUID.randomUUID();
         AccountResponse source = account(sourceId, "USD", true);
@@ -92,6 +96,50 @@ class TransferServiceTest {
         assertThat(result.getDestinationAccountId()).isEqualTo(destinationId);
         assertThat(result.getAmount()).isEqualByComparingTo("25.00");
         verify(transferExecutionService).execute(any(), any(), any(), any());
+    }
+
+    @Test
+    void aCompletedTransferIsPublishedAsATransferCompletedEvent() {
+        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService, transferEventPublisher);
+        UUID sourceId = UUID.randomUUID();
+        UUID destinationId = UUID.randomUUID();
+        AccountResponse source = account(sourceId, "USD", true);
+        AccountResponse destination = account(destinationId, "USD", true);
+
+        when(accountsClient.getAccount(sourceId)).thenReturn(source);
+        when(accountsClient.getAccount(destinationId)).thenReturn(destination);
+        when(transferRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(transferExecutionService.execute(any(), any(), any(), any())).thenAnswer(invocation -> {
+            Transfer transfer = invocation.getArgument(0);
+            transfer.markCompleted(UUID.randomUUID());
+            return transfer;
+        });
+
+        Transfer result = service.initiateTransfer(new InitiateTransferRequest(sourceId, destinationId, new BigDecimal("25.00"), "Rent"));
+
+        verify(transferEventPublisher).publishTransferCompleted(result);
+    }
+
+    @Test
+    void aFailedTransferIsNeverPublished() {
+        TransferService service = new TransferService(transferRepository, accountsClient, transferExecutionService, transferEventPublisher);
+        UUID sourceId = UUID.randomUUID();
+        UUID destinationId = UUID.randomUUID();
+        AccountResponse source = account(sourceId, "USD", true);
+        AccountResponse destination = account(destinationId, "USD", true);
+
+        when(accountsClient.getAccount(sourceId)).thenReturn(source);
+        when(accountsClient.getAccount(destinationId)).thenReturn(destination);
+        when(transferRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(transferExecutionService.execute(any(), any(), any(), any())).thenAnswer(invocation -> {
+            Transfer transfer = invocation.getArgument(0);
+            transfer.markFailed("insufficient funds");
+            return transfer;
+        });
+
+        service.initiateTransfer(new InitiateTransferRequest(sourceId, destinationId, new BigDecimal("25.00"), "Rent"));
+
+        verify(transferEventPublisher, never()).publishTransferCompleted(any());
     }
 
     private AccountResponse account(UUID id, String currency, boolean active) {

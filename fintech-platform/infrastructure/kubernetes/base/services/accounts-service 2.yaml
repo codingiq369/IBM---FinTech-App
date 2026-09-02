@@ -1,0 +1,15 @@
+# Managed by Kustomize. Base is environment-agnostic; overlays/<env>/patches/ supplies replicas, resources, image tags, and env-specific config.
+apiVersion: v1
+kind: Service
+metadata:
+  name: accounts-service
+  labels:
+    app: accounts-service
+spec:
+  selector:
+    app: accounts-service
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
+  type: ClusterIP

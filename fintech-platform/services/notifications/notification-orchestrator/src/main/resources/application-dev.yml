@@ -1,0 +1,27 @@
+# Environment profile: dev
+# Activated via SPRING_PROFILES_ACTIVE=dev. Verbose logging and full actuator
+# exposure for local iteration against a real Postgres and Kafka. Not used
+# by the plain `docker compose up` quickstart in the root README, which
+# runs with no profile active and the defaults in application.yml.
+
+logging:
+  level:
+    root: INFO
+    com.fintechplatform: DEBUG
+
+spring:
+  jpa:
+    show-sql: true
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,metrics,beans

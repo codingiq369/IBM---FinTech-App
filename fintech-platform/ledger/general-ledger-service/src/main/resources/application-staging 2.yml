@@ -1,0 +1,26 @@
+# Environment profile: staging
+# Activated via SPRING_PROFILES_ACTIVE=staging (see environments/staging/.env).
+
+logging:
+  level:
+    root: INFO
+    com.fintechplatform: INFO
+
+spring:
+  jpa:
+    show-sql: false
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

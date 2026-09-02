@@ -1,0 +1,73 @@
+name: Build images
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        required: true
+        type: string
+      vite_api_base_url:
+        required: false
+        type: string
+        default: http://localhost:8080
+      push:
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  backend-images:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: customer-service
+            context: services/customer/customer-service
+          - service: accounts-service
+            context: services/accounts/account-service
+          - service: ledger-service
+            context: ledger/general-ledger-service
+          - service: transfers-service
+            context: services/transfers/internal-transfer-service
+          - service: api-gateway
+            context: gateways/api-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        if: inputs.push
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: ${{ inputs.push }}
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ inputs.image_tag }}
+            ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.sha }}
+
+  frontend-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        if: inputs.push
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: apps/web-banking
+          push: ${{ inputs.push }}
+          build-args: |
+            VITE_API_BASE_URL=${{ inputs.vite_api_base_url }}
+          tags: |
+            ghcr.io/${{ github.repository }}/web-banking:${{ inputs.image_tag }}
+            ghcr.io/${{ github.repository }}/web-banking:${{ github.sha }}

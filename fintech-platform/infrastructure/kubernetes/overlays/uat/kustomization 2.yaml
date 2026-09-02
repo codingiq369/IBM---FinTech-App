@@ -1,0 +1,70 @@
+# Managed by Kustomize.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: fintech-uat
+
+resources:
+  - ../../base
+
+patches:
+  - path: patches/customer-service-deployment.yaml
+    target:
+      kind: Deployment
+      name: customer-service
+  - path: patches/accounts-service-deployment.yaml
+    target:
+      kind: Deployment
+      name: accounts-service
+  - path: patches/ledger-service-deployment.yaml
+    target:
+      kind: Deployment
+      name: ledger-service
+  - path: patches/transfers-service-deployment.yaml
+    target:
+      kind: Deployment
+      name: transfers-service
+  - path: patches/api-gateway-deployment.yaml
+    target:
+      kind: Deployment
+      name: api-gateway
+  - path: patches/web-banking-deployment.yaml
+    target:
+      kind: Deployment
+      name: web-banking
+  - path: patches/configmap.yaml
+    target:
+      kind: ConfigMap
+      name: fintech-config
+  - path: patches/ingress.yaml
+    target:
+      kind: Ingress
+      name: fintech-ingress
+  - path: patches/resource-quota.yaml
+    target:
+      kind: ResourceQuota
+      name: fintech-quota
+  - path: patches/pdb-min-available.yaml
+    target:
+      kind: PodDisruptionBudget
+      name: customer-service-pdb
+  - path: patches/pdb-min-available.yaml
+    target:
+      kind: PodDisruptionBudget
+      name: accounts-service-pdb
+  - path: patches/pdb-min-available.yaml
+    target:
+      kind: PodDisruptionBudget
+      name: ledger-service-pdb
+  - path: patches/pdb-min-available.yaml
+    target:
+      kind: PodDisruptionBudget
+      name: transfers-service-pdb
+  - path: patches/pdb-min-available.yaml
+    target:
+      kind: PodDisruptionBudget
+      name: api-gateway-pdb
+  - path: patches/pdb-min-available.yaml
+    target:
+      kind: PodDisruptionBudget
+      name: web-banking-pdb

@@ -13,6 +13,7 @@ import com.fintechplatform.cardauthorization.client.CardResponse;
 import com.fintechplatform.cardauthorization.domain.CardAuthorization;
 import com.fintechplatform.cardauthorization.domain.CardAuthorizationStatus;
 import com.fintechplatform.cardauthorization.dto.AuthorizePurchaseRequest;
+import com.fintechplatform.cardauthorization.event.CardAuthorizationEventPublisher;
 import com.fintechplatform.cardauthorization.repository.CardAuthorizationRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -40,10 +41,13 @@ class CardAuthorizationServiceTest {
     @Mock
     private CardAuthorizationExecutionService executionService;
 
+    @Mock
+    private CardAuthorizationEventPublisher eventPublisher;
+
     @Test
     void aPurchaseOnANonActiveCardIsDeclinedWithoutEverCallingTheLedger() {
         CardAuthorizationService service = new CardAuthorizationService(
-                cardAuthorizationRepository, cardManagementClient, accountsClient, clearingAccountService, executionService);
+                cardAuthorizationRepository, cardManagementClient, accountsClient, clearingAccountService, executionService, eventPublisher);
         UUID cardId = UUID.randomUUID();
         UUID accountId = UUID.randomUUID();
 
@@ -58,12 +62,13 @@ class CardAuthorizationServiceTest {
         assertThat(result.getDeclineReason()).contains("not active");
         verify(executionService, never()).execute(any(), any(), any());
         verify(accountsClient, never()).getAccount(any());
+        verify(eventPublisher, never()).publishCardAuthorizationApproved(any());
     }
 
     @Test
     void aPurchaseThatWouldExceedTheDailyLimitIsDeclinedWithoutEverCallingTheLedger() {
         CardAuthorizationService service = new CardAuthorizationService(
-                cardAuthorizationRepository, cardManagementClient, accountsClient, clearingAccountService, executionService);
+                cardAuthorizationRepository, cardManagementClient, accountsClient, clearingAccountService, executionService, eventPublisher);
         UUID cardId = UUID.randomUUID();
         UUID accountId = UUID.randomUUID();
 
@@ -78,12 +83,13 @@ class CardAuthorizationServiceTest {
         assertThat(result.getStatus()).isEqualTo(CardAuthorizationStatus.DECLINED);
         assertThat(result.getDeclineReason()).contains("Daily purchase limit");
         verify(executionService, never()).execute(any(), any(), any());
+        verify(eventPublisher, never()).publishCardAuthorizationApproved(any());
     }
 
     @Test
     void aPurchaseWithinTheLimitOnAnActiveCardIsHandedToTheExecutionService() {
         CardAuthorizationService service = new CardAuthorizationService(
-                cardAuthorizationRepository, cardManagementClient, accountsClient, clearingAccountService, executionService);
+                cardAuthorizationRepository, cardManagementClient, accountsClient, clearingAccountService, executionService, eventPublisher);
         UUID cardId = UUID.randomUUID();
         UUID accountId = UUID.randomUUID();
         UUID ledgerAccountId = UUID.randomUUID();
@@ -107,5 +113,63 @@ class CardAuthorizationServiceTest {
         CardAuthorization result = service.authorizePurchase(new AuthorizePurchaseRequest(cardId, "Coffee Shop", new BigDecimal("4.50"), "USD"));
 
         assertThat(result.getStatus()).isEqualTo(CardAuthorizationStatus.APPROVED);
+    }
+
+    @Test
+    void anApprovedPurchaseIsPublishedAsACardAuthorizationApprovedEvent() {
+        CardAuthorizationService service = new CardAuthorizationService(
+                cardAuthorizationRepository, cardManagementClient, accountsClient, clearingAccountService, executionService, eventPublisher);
+        UUID cardId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
+        UUID ledgerAccountId = UUID.randomUUID();
+        UUID clearingAccountId = UUID.randomUUID();
+
+        when(cardManagementClient.getCard(cardId)).thenReturn(
+                new CardResponse(cardId, accountId, UUID.randomUUID(), "•••• 1234", "Jane Doe", "DEBIT", 1, 2030,
+                        "ACTIVE", new BigDecimal("2000.00"), Instant.now(), Instant.now(), null));
+        when(cardAuthorizationRepository.sumApprovedAmountSince(any(), any(), any())).thenReturn(BigDecimal.ZERO);
+        when(accountsClient.getAccount(accountId)).thenReturn(
+                new com.fintechplatform.cardauthorization.client.AccountResponse(
+                        accountId, UUID.randomUUID(), ledgerAccountId, "ACC-1", "CHECKING", "USD", "ACTIVE", Instant.now()));
+        when(clearingAccountService.getOrCreateClearingLedgerAccountId("USD")).thenReturn(clearingAccountId);
+        when(executionService.execute(any(), eq(ledgerAccountId), eq(clearingAccountId)))
+                .thenAnswer(invocation -> {
+                    CardAuthorization authorization = invocation.getArgument(0);
+                    authorization.markApproved(UUID.randomUUID());
+                    return authorization;
+                });
+
+        CardAuthorization result = service.authorizePurchase(new AuthorizePurchaseRequest(cardId, "Coffee Shop", new BigDecimal("4.50"), "USD"));
+
+        verify(eventPublisher).publishCardAuthorizationApproved(result);
+    }
+
+    @Test
+    void aDeclinedPurchaseHandedToTheLedgerIsNeverPublished() {
+        CardAuthorizationService service = new CardAuthorizationService(
+                cardAuthorizationRepository, cardManagementClient, accountsClient, clearingAccountService, executionService, eventPublisher);
+        UUID cardId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
+        UUID ledgerAccountId = UUID.randomUUID();
+        UUID clearingAccountId = UUID.randomUUID();
+
+        when(cardManagementClient.getCard(cardId)).thenReturn(
+                new CardResponse(cardId, accountId, UUID.randomUUID(), "•••• 1234", "Jane Doe", "DEBIT", 1, 2030,
+                        "ACTIVE", new BigDecimal("2000.00"), Instant.now(), Instant.now(), null));
+        when(cardAuthorizationRepository.sumApprovedAmountSince(any(), any(), any())).thenReturn(BigDecimal.ZERO);
+        when(accountsClient.getAccount(accountId)).thenReturn(
+                new com.fintechplatform.cardauthorization.client.AccountResponse(
+                        accountId, UUID.randomUUID(), ledgerAccountId, "ACC-1", "CHECKING", "USD", "ACTIVE", Instant.now()));
+        when(clearingAccountService.getOrCreateClearingLedgerAccountId("USD")).thenReturn(clearingAccountId);
+        when(executionService.execute(any(), eq(ledgerAccountId), eq(clearingAccountId)))
+                .thenAnswer(invocation -> {
+                    CardAuthorization authorization = invocation.getArgument(0);
+                    authorization.markDeclined("Insufficient funds");
+                    return authorization;
+                });
+
+        service.authorizePurchase(new AuthorizePurchaseRequest(cardId, "Coffee Shop", new BigDecimal("4.50"), "USD"));
+
+        verify(eventPublisher, never()).publishCardAuthorizationApproved(any());
     }
 }

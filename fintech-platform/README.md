@@ -6,7 +6,8 @@ supporting data, ML, security, and infrastructure layers a real bank needs.
 
 Most of this repository is a **scaffold** — the folder structure a platform
 like this would eventually have, with the code still to be written. Two
-real, runnable paths have been built through it so far:
+real, runnable paths have been built through it so far, plus a piece of
+event-driven infrastructure layered on top of both:
 
 ## What's implemented
 
@@ -36,15 +37,34 @@ for the one new architectural decision it needed.
 - `services/cards/card-authorization-service` — checks the card and its
   daily limit, then posts the purchase to the ledger
 
+### Event-driven notifications: the first Kafka consumer
+
+A completed transfer and an approved card purchase each publish an event
+to Kafka; a new service consumes both and records them for an activity
+feed in the demo UI. This is deliberately the smallest possible step into
+event-driven architecture, not a migration of anything else to async — see
+[`docs/architecture/event-driven-architecture.md`](docs/architecture/event-driven-architecture.md)
+for how it works and
+[ADR-0003](docs/architecture/architecture-decisions/ADR-0003-event-bus.md)
+for why, and
+[`docs/product/prd-event-driven-notifications.md`](docs/product/prd-event-driven-notifications.md)
+for the product framing (this is platform/infrastructure work, not a
+customer-facing feature — see that PRD's Problem Statement).
+
+- `services/notifications/notification-orchestrator` — consumes
+  `transaction-events` off Kafka, records each event, serves it back over
+  a read-only API
+
 ### Shared by both slices
 
 - `gateways/api-gateway` — single entry point + CORS for the browser UI
 - `apps/web-banking` — Vite + React + TypeScript demo UI, seven services,
-  one Postgres instance (one database per service)
+  one Postgres instance (one database per service), one Kafka broker
 
 Read [`docs/architecture/vertical-slice.md`](docs/architecture/vertical-slice.md)
-for how both fit together, sequence diagrams for the transfer and card
-authorization flows, and what was simplified on purpose.
+for how everything fits together, sequence diagrams for the transfer,
+card authorization, and notification flows, and what was simplified on
+purpose.
 
 ### Running it
 
@@ -56,9 +76,10 @@ docker compose up --build
 ```
 
 Then open **http://localhost:3000**. First boot takes a minute or two while
-seven JVMs start and run their database migrations, and the frontend builds —
-if the page says it can't reach the API gateway, or an early transfer fails
-with an "upstream service unreachable" error, wait a bit and retry.
+the Kafka broker starts, seven JVMs start and run their database migrations,
+and the frontend builds — if the page says it can't reach the API gateway,
+or an early transfer fails with an "upstream service unreachable" error,
+wait a bit and retry.
 
 To run a single backend service on its own (e.g. for `mvn test` or debugging
 in an IDE), each one under `services/*/*-service` and
@@ -99,6 +120,7 @@ cd services/transfers/internal-transfer-service && mvn test
 cd ledger/general-ledger-service && mvn test
 cd services/cards/card-management-service && mvn test
 cd services/cards/card-authorization-service && mvn test
+cd services/notifications/notification-orchestrator && mvn test
 cd gateways/api-gateway && mvn test
 cd apps/web-banking && npm test
 ```
@@ -109,16 +131,16 @@ it proves the ledger cannot construct an unbalanced journal entry, no
 matter what a caller sends it.
 
 > **Note on this build:** the backend Java services — including
-> `card-management-service` and `card-authorization-service` — were
-> written in an environment without access to Maven Central, so they
-> could not be compiled or test-run before being handed off — they're
-> written carefully and reviewed by hand, but run `mvn clean verify` (or
-> `docker compose build`) yourself as a first step and treat any compiler
-> error you hit as a real bug report. The frontend, by contrast, *was*
-> built, installed, linted, and tested in an environment with registry
-> access (npm's registry wasn't blocked the way Maven Central was) —
-> including the new Cards page — so `apps/web-banking` should build,
-> lint, and test clean as-is.
+> `card-management-service`, `card-authorization-service`, and
+> `notification-orchestrator` — were written in an environment without
+> access to Maven Central, so they could not be compiled or test-run
+> before being handed off — they're written carefully and reviewed by
+> hand, but run `mvn clean verify` (or `docker compose build`) yourself as
+> a first step and treat any compiler error you hit as a real bug report.
+> The frontend, by contrast, *was* built, installed, linted, and tested in
+> an environment with registry access (npm's registry wasn't blocked the
+> way Maven Central was) — including the Cards and Activity pages — so
+> `apps/web-banking` should build, lint, and test clean as-is.
 
 ## Everything else
 
@@ -129,11 +151,16 @@ microservice folders next to the ones implemented here (e.g.
 `services/transfers/wire-transfer-service`,
 `services/cards/card-dispute-service`) and the unused pages in
 `apps/web-banking/src/pages` (loans, investments, etc.) are still empty
-scaffolding — placeholders for where that code will live. See
-`docs/architecture/vertical-slice.md`'s "What to build next" section for a
-suggested order to keep extending this, and
+scaffolding — placeholders for where that code will live. `messaging/kafka`
+is a partial exception the same way `infrastructure` is below: one topic,
+`transaction-events`, is real and in use; the other six scaffolded topics
+(`account-events`, `compliance-events`, `customer-events`, `fraud-events`,
+`notification-events`, `payment-events`) remain empty, each a future
+increment of its own. See `docs/architecture/vertical-slice.md`'s "What to
+build next" section for a suggested order to keep extending this,
 `docs/product/card-issuance-backlog.md` for what's specifically left
-within the cards domain.
+within the cards domain, and `docs/product/notifications-backlog.md` for
+what's left in event-driven notifications.
 
 `infrastructure` is a partial exception: the Terraform and Kubernetes
 needed to run *this* vertical slice across dev/staging/uat/production is

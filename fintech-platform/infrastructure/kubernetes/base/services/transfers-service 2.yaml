@@ -1,0 +1,15 @@
+# Managed by Kustomize. Base is environment-agnostic; overlays/<env>/patches/ supplies replicas, resources, image tags, and env-specific config.
+apiVersion: v1
+kind: Service
+metadata:
+  name: transfers-service
+  labels:
+    app: transfers-service
+spec:
+  selector:
+    app: transfers-service
+  ports:
+    - name: http
+      port: 8084
+      targetPort: 8084
+  type: ClusterIP

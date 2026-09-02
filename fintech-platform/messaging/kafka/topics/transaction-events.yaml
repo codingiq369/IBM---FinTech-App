@@ -1,0 +1,79 @@
+# Topic: transaction-events
+#
+# The one Kafka topic this platform actually publishes to today. See
+# docs/architecture/architecture-decisions/ADR-0003-event-bus.md for the
+# full reasoning — this file just pins down the concrete config.
+#
+# A "transaction" here means: a customer-visible outcome that was already
+# decided and committed by the owning service before the event was
+# published. This topic is a notification of fact, never a request for
+# something to happen, and never itself the source of truth for whether a
+# transfer completed or a purchase was approved — that's still
+# transfers_db / card_authorization_db respectively.
+
+name: transaction-events
+
+description: >
+  Committed, ledger-backed transaction outcomes: a completed internal
+  transfer, or an approved card purchase. Multiplexed onto one topic and
+  distinguished by each message's eventType field, rather than split into
+  a topic per producing service — see ADR-0003's "Alternatives considered"
+  for why, and for when to revisit that.
+
+partitions: 3
+replication-factor: 1 # single-node KRaft broker in docker-compose; a real
+                        # deployment (see docs/operations/deployment.md)
+                        # would run more brokers and raise this.
+retention-ms: 604800000 # 7 days — long enough for a consumer that was down
+                         # over a weekend to catch back up; not intended as
+                         # a permanent event store.
+
+key: >
+  The id of the entity the event is about (the transfer id, or the card
+  authorization id) as a plain string — so every event for a given entity
+  (today: exactly one) lands on the same partition and preserves order
+  relative to each other.
+
+value-format: json # plain JSON strings via Jackson, no schema registry.
+                    # See ADR-0003 for why: two producers, one internal
+                    # consumer, all in this repository today.
+
+event-types:
+  - name: TransferCompleted
+    produced-by: services/transfers/internal-transfer-service
+    produced-when: >
+      A Transfer moves to COMPLETED (never for a FAILED transfer — a
+      failed transfer is a successfully recorded API response, not
+      something downstream needs to react to).
+    schema-reference: >
+      com.fintechplatform.transfers.event.TransferCompletedEvent
+      (eventId, eventType, transferId, sourceAccountId,
+      destinationAccountId, amount, currency, journalEntryReference,
+      occurredAt)
+  - name: CardAuthorizationApproved
+    produced-by: services/cards/card-authorization-service
+    produced-when: >
+      A CardAuthorization moves to APPROVED (never for a DECLINED
+      authorization, for the same reason as above).
+    schema-reference: >
+      com.fintechplatform.cardauthorization.event.CardAuthorizationApprovedEvent
+      (eventId, eventType, cardAuthorizationId, cardId, accountId,
+      merchantName, amount, currency, journalEntryReference, occurredAt)
+
+consumers:
+  - name: services/notifications/notification-orchestrator
+    consumes: both event types above; records each one as a row in its own
+      notification_records table (deduplicated by eventId), served back
+      through GET /api/notifications. See docs/domains/notifications.md
+      for what it does and does not do yet.
+
+delivery-guarantees: >
+  At-least-once, best-effort publish. Publishing never blocks or fails the
+  originating request (see TransferEventPublisher /
+  CardAuthorizationEventPublisher) — there is a real, narrow window where
+  a transaction commits but its event is never published (process crash
+  between commit and send). notification-orchestrator guards against
+  redelivered (not lost) events with a unique constraint on eventId, not a
+  full idempotent-consumption design — see ADR-0003's "What's deliberately
+  out of scope" before building anything on this topic that needs a
+  stronger guarantee than "usually, soon, at least once."

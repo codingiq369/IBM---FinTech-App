@@ -1,0 +1,10 @@
+# Managed by Kustomize. Base is environment-agnostic; overlays/<env>/patches/ supplies replicas, resources, image tags, and env-specific config.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: customer-service-pdb
+spec:
+  minAvailable: 0
+  selector:
+    matchLabels:
+      app: customer-service

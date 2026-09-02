@@ -5,4 +5,5 @@ export const ROUTES = {
   payments: '/payments',
   transactions: '/transactions',
   cards: '/cards',
+  notifications: '/notifications',
 } as const

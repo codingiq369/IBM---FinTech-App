@@ -1,0 +1,24 @@
+# Environment profile: dev
+# Activated via SPRING_PROFILES_ACTIVE=dev.
+
+logging:
+  level:
+    root: INFO
+    com.fintechplatform: DEBUG
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,metrics,gateway
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowedOriginPatterns: "${ALLOWED_ORIGIN:http://localhost:3000,http://localhost:5173}"

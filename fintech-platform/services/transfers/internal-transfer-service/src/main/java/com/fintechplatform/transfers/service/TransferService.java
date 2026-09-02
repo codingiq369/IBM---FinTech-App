@@ -3,7 +3,9 @@ package com.fintechplatform.transfers.service;
 import com.fintechplatform.transfers.client.AccountResponse;
 import com.fintechplatform.transfers.client.AccountsClient;
 import com.fintechplatform.transfers.domain.Transfer;
+import com.fintechplatform.transfers.domain.TransferStatus;
 import com.fintechplatform.transfers.dto.InitiateTransferRequest;
+import com.fintechplatform.transfers.event.TransferEventPublisher;
 import com.fintechplatform.transfers.repository.TransferRepository;
 import java.util.List;
 import java.util.UUID;
@@ -15,11 +17,17 @@ public class TransferService {
     private final TransferRepository transferRepository;
     private final AccountsClient accountsClient;
     private final TransferExecutionService transferExecutionService;
+    private final TransferEventPublisher transferEventPublisher;
 
-    public TransferService(TransferRepository transferRepository, AccountsClient accountsClient, TransferExecutionService transferExecutionService) {
+    public TransferService(
+            TransferRepository transferRepository,
+            AccountsClient accountsClient,
+            TransferExecutionService transferExecutionService,
+            TransferEventPublisher transferEventPublisher) {
         this.transferRepository = transferRepository;
         this.accountsClient = accountsClient;
         this.transferExecutionService = transferExecutionService;
+        this.transferEventPublisher = transferEventPublisher;
     }
 
     /**
@@ -34,7 +42,11 @@ public class TransferService {
      *       asks ledger-service to post the balanced journal entry. Success
      *       moves the Transfer to COMPLETED; any failure (insufficient
      *       funds, ledger-service unreachable) moves it to FAILED with a
-     *       reason, rather than throwing the record away.</li>
+     *       reason, rather than throwing the record away. Only a COMPLETED
+     *       outcome is published as a {@code TransferCompleted} event via
+     *       {@link TransferEventPublisher} — a FAILED transfer is a
+     *       successfully recorded API response, not something downstream
+     *       consumers (notifications, today) need to react to.</li>
      * </ol>
      * This is a simplified stand-in for the real distributed-transaction
      * problem (a saga, an outbox, a reconciliation job) — enough to show
@@ -63,7 +75,11 @@ public class TransferService {
         Transfer transfer = new Transfer(source.id(), destination.id(), request.amount(), source.currency());
         transfer = transferRepository.save(transfer);
 
-        return transferExecutionService.execute(transfer, source, destination, request.descriptionOrDefault());
+        Transfer result = transferExecutionService.execute(transfer, source, destination, request.descriptionOrDefault());
+        if (result.getStatus() == TransferStatus.COMPLETED) {
+            transferEventPublisher.publishTransferCompleted(result);
+        }
+        return result;
     }
 
     public Transfer getById(UUID id) {

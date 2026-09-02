@@ -1,0 +1,15 @@
+# Managed by Kustomize. Base is environment-agnostic; overlays/<env>/patches/ supplies replicas, resources, image tags, and env-specific config.
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-banking
+  labels:
+    app: web-banking
+spec:
+  selector:
+    app: web-banking
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  type: ClusterIP

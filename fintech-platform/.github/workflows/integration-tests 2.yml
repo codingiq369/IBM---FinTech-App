@@ -1,0 +1,36 @@
+name: Integration tests
+
+on:
+  workflow_call:
+
+jobs:
+  vertical-slice:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start the stack (dev profile)
+        working-directory: deployment/docker
+        run: docker compose --env-file ../../environments/development/.env -f docker-compose.yml up --build -d
+
+      - name: Wait for the gateway to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/actuator/health && exit 0
+            sleep 5
+          done
+          echo "gateway never became healthy" >&2
+          exit 1
+
+      - name: Run the vertical-slice smoke test
+        run: bash deployment/scripts/smoke-test.sh http://localhost:8080
+
+      - name: Dump logs on failure
+        if: failure()
+        working-directory: deployment/docker
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        working-directory: deployment/docker
+        run: docker compose down -v

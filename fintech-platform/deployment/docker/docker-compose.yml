@@ -1,8 +1,16 @@
 # Runs the implemented vertical slices (customer -> accounts -> ledger ->
-# transfers, and cards -> card-authorization -> ledger) plus the gateway and
-# web-banking UI as one stack. Plain `docker compose up --build` here (no
-# --env-file) uses the defaults below, which match the quickstart in the
-# root README exactly -- nothing about that command changes.
+# transfers, and cards -> card-authorization -> ledger) plus a shared
+# single-node Kafka broker, the notification-orchestrator consumer, the
+# gateway, and the web-banking UI as one stack. Plain `docker compose up
+# --build` here (no --env-file) uses the defaults below, which match the
+# quickstart in the root README exactly -- nothing about that command
+# changes.
+#
+# Kafka is KRaft-mode (no ZooKeeper), single broker, no replication -- a
+# local/demo topology only, matching every other piece of this stack (one
+# Postgres instance, no HA anywhere). See
+# docs/architecture/architecture-decisions/ADR-0003-event-bus.md and
+# messaging/kafka/topics/transaction-events.yaml for what's on it and why.
 #
 # To run this same stack shaped like a specific environment (its Spring
 # profile, its ports, its CORS origin), pass that environment's .env file:
@@ -37,6 +45,40 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  kafka:
+    image: apache/kafka:3.7.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_HOST://:29092
+      # Internal traffic (every service in this compose file) always
+      # targets kafka:9092, the same way every service always targets
+      # postgres:5432 regardless of environment -- only the host-exposed
+      # debug listener's advertised port varies per environment.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:${KAFKA_PORT:-29092}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # Single broker, so a replication factor above 1 isn't possible;
+      # 3 partitions matches messaging/kafka/topics/transaction-events.yaml
+      # even though, on one broker, this is about matching that intended
+      # config more than buying real parallelism.
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "${KAFKA_PORT:-29092}:29092"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
 
   customer-service:
     build:
@@ -95,6 +137,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-fintech}
       ACCOUNTS_SERVICE_URL: http://accounts-service:8082
       LEDGER_SERVICE_URL: http://ledger-service:8083
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
     ports:
       - "${TRANSFERS_SERVICE_PORT:-8084}:8084"
@@ -105,6 +148,8 @@ services:
         condition: service_started
       ledger-service:
         condition: service_started
+      kafka:
+        condition: service_healthy
 
   card-management-service:
     build:
@@ -133,6 +178,7 @@ services:
       CARD_MANAGEMENT_SERVICE_URL: http://card-management-service:8085
       ACCOUNTS_SERVICE_URL: http://accounts-service:8082
       LEDGER_SERVICE_URL: http://ledger-service:8083
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
     ports:
       - "${CARD_AUTHORIZATION_SERVICE_PORT:-8086}:8086"
@@ -145,6 +191,25 @@ services:
         condition: service_started
       ledger-service:
         condition: service_started
+      kafka:
+        condition: service_healthy
+
+  notification-orchestrator:
+    build:
+      context: ../../services/notifications/notification-orchestrator
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/notifications_db
+      DB_USERNAME: ${POSTGRES_USER:-fintech}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-fintech}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+    ports:
+      - "${NOTIFICATION_SERVICE_PORT:-8087}:8087"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   api-gateway:
     build:
@@ -156,6 +221,7 @@ services:
       TRANSFERS_SERVICE_URL: http://transfers-service:8084
       CARD_MANAGEMENT_SERVICE_URL: http://card-management-service:8085
       CARD_AUTHORIZATION_SERVICE_URL: http://card-authorization-service:8086
+      NOTIFICATION_SERVICE_URL: http://notification-orchestrator:8087
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
       ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-*}
     ports:
@@ -167,6 +233,7 @@ services:
       - transfers-service
       - card-management-service
       - card-authorization-service
+      - notification-orchestrator
 
   web-banking:
     build:
